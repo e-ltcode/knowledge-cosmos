@@ -31,7 +31,7 @@ const EditCategory = ({ inLine }: { inLine: boolean }) => {
             inLine={inLine}
             category={{ ...categoryInViewingOrEditing! }}
             questionId={questionId}
-            mode={FormMode.Editing}
+            formMode={FormMode.EditingCategory}
             submitForm={submitForm}
         >
             Update Category

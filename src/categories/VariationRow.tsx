@@ -5,7 +5,7 @@ import { faEdit, faRemove, faThumbsUp, faPlus, faReply } from '@fortawesome/free
 import { ListGroup, Button, Badge } from "react-bootstrap";
 
 import { useGlobalState } from 'global/GlobalProvider'
-import { ActionTypes, ICategoryInfo, ICategoryKey, Mode } from "categories/types";
+import { ActionTypes, ICategoryInfo, ICategoryKey, FormMode } from "categories/types";
 import { useCategoryContext, useCategoryDispatch } from 'categories/CategoryProvider'
 import { useHover } from 'hooks/useHover';
 import { IVariation } from 'categories/types'
@@ -99,7 +99,7 @@ const VariationRow = ({ categoryKey, tag, categoryInAdding }: { categoryKey: ICa
                     title="Add Tag"
                     onClick={() => {
                         console.log('click q')
-                        const categoryInfo: ICategoryInfo = { categoryKey: {partitionKey, id}, level }
+                        const categoryInfo: ICategoryInfo = { categoryKey: { partitionKey, id }, level }
                         //dispatch({ type: ActionTypes.ADD_ANSWER, payload: { categoryInfo } })
                     }}
                 >
@@ -112,13 +112,13 @@ const VariationRow = ({ categoryKey, tag, categoryInAdding }: { categoryKey: ICa
     return (
 
         <div className="py-1 px-1">
-            {inAdding && categoryInAdding && state.mode === Mode.AddingVariation
+            {inAdding && categoryInAdding && state.formMode === FormMode.AddingVariation
                 ? (
                     // <AddTag tag={tag} inLine={true} showCloseButton={true} />
                     <span>add tag</span>
                 )
-                : ((inEditing && state.mode === Mode.EditingVariation) ||
-                    (inViewing && state.mode === Mode.ViewingVariation)) ? (
+                : ((inEditing && state.formMode === FormMode.EditingVariation) ||
+                    (inViewing && state.formMode === FormMode.ViewingVariation)) ? (
                     <>
                         {/* <div class="d-lg-none">hide on lg and wider screens</div> */}
                         <div id='div-tag' className="ms-0 d-md-none w-100">

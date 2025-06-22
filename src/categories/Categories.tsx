@@ -3,7 +3,7 @@ import { Container, Row, Col, Button } from "react-bootstrap";
 
 import { useParams } from 'react-router-dom';
 
-import { Mode, ActionTypes, ICategoryKey, IQuestionKey, ICategoryKeyExpanded, ICategory, ICategoryRow } from "./types";
+import { ActionTypes, ICategoryKey, IQuestionKey, ICategoryKeyExpanded, ICategory, ICategoryRow, FormMode } from "./types";
 
 import { useGlobalContext, useGlobalState } from 'global/GlobalProvider';
 
@@ -170,17 +170,17 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
                         {/* {store.mode === FORM_MODES.ADD && <Add category={category??initialCategory} />} */}
                         {/* <div class="d-none d-lg-block">hide on screens smaller than lg</div> */}
                         <div id='div-details' className="d-none d-md-block">
-                            {state.mode === Mode.AddingCategory && <AddCategory />}
-                            {state.mode === Mode.ViewingCategory && <ViewCategory inLine={false} />}
-                            {state.mode === Mode.EditingCategory && <EditCategory inLine={false} />}
+                            {state.formMode === FormMode.AddingCategory && <AddCategory />}
+                            {state.formMode === FormMode.ViewingCategory && <ViewCategory inLine={false} />}
+                            {state.formMode === FormMode.EditingCategory && <EditCategory inLine={false} />}
                             {questionInAddingViewingOrEditing &&
-                                state.mode === Mode.ViewingQuestion
-                                    ? <ViewQuestion inLine={false} />
-                                    : state.mode === Mode.EditingQuestion
-                                        ? <EditQuestion inLine={false} />
-                                        : state.mode === Mode.AddingQuestion
-                                            ? <AddQuestion />
-                                            : null
+                                state.formMode === FormMode.ViewingQuestion
+                                ? <ViewQuestion inLine={false} />
+                                : state.formMode === FormMode.EditingQuestion
+                                    ? <EditQuestion inLine={false} odakle='from Categories'/>
+                                    : state.formMode === FormMode.AddingQuestion
+                                        ? <AddQuestion />
+                                        : null
                             }
 
                         </div>

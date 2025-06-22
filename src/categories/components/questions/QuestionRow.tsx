@@ -5,7 +5,7 @@ import { faEdit, faRemove, faQuestion, faPlus, faReply } from '@fortawesome/free
 import { ListGroup, Button, Badge } from "react-bootstrap";
 
 import { useGlobalState } from 'global/GlobalProvider'
-import { ActionTypes, FormMode, ICategoryInfo, ICategoryKey, IQuestionKey, IQuestionRow, Mode } from "categories/types";
+import { ActionTypes, FormMode, ICategoryInfo, ICategoryKey, IQuestionKey, IQuestionRow } from "categories/types";
 import { useCategoryContext, useCategoryDispatch } from 'categories/CategoryProvider'
 import { useHover } from 'hooks/useHover';
 import { IQuestion } from 'categories/types'
@@ -24,19 +24,19 @@ import { initialQuestion } from 'categories/CategoriesReducer';
 const QuestionRow = ({ questionRow, categoryInAdding }: { questionRow: IQuestionRow, categoryInAdding: boolean | undefined }) => {
     const { id, partitionKey, parentCategory, title, numOfAssignedAnswers, isSelected, rootId } = questionRow;
     const questionKey: IQuestionKey = { partitionKey, id, parentCategory: parentCategory ?? undefined };
-    const categoryKey: ICategoryKey = { partitionKey, id: parentCategory}
+    const categoryKey: ICategoryKey = { partitionKey, id: parentCategory }
 
     const { canEdit, isDarkMode, variant, bg, authUser } = useGlobalState();
     const { state, viewQuestion, addQuestion, editQuestion, deleteQuestion } = useCategoryContext();
     const dispatch = useCategoryDispatch();
 
-    const { questionInAddingViewingOrEditing, questionFormMode, categoryKeyExpanded } = state;
+    const { questionInAddingViewingOrEditing, formMode, categoryKeyExpanded } = state;
     const showForm = questionInAddingViewingOrEditing && questionInAddingViewingOrEditing.id === id;
     const { questionId } = categoryKeyExpanded ?? { questionId: null };
 
     console.log("------------------------ QuestionRow", { id, questionId })
 
-    const alreadyAdding = state.mode === Mode.AddingQuestion;
+    const alreadyAdding = state.formMode === FormMode.AddingQuestion;
 
     const del = () => {
         questionRow.modified = {
@@ -61,18 +61,18 @@ const QuestionRow = ({ questionRow, categoryInAdding }: { questionRow: IQuestion
     useEffect(() => {
         (async () => {
             if (isSelected) {
-                switch(questionFormMode) {
+                switch (formMode) {
                     // case FormMode.Adding:
                     //     //await addQuestion(questionRow);
                     //     addQuestion(true, categoryKey, rootId!);
                     //     break;
                     //case FormMode.None:
-                    case FormMode.Editing:
-                        canEdit 
+                    case FormMode.EditingQuestion:
+                        canEdit
                             ? await editQuestion(questionRow)
                             : await viewQuestion(questionRow);
                         break;
-                    case FormMode.Viewing:
+                    case FormMode.ViewingQuestion:
                         await viewQuestion(questionRow);
                         break;
                 }
@@ -148,29 +148,29 @@ const QuestionRow = ({ questionRow, categoryInAdding }: { questionRow: IQuestion
             className="py-0 px-1 w-100"
             as="li"
         >
-            {/*inAdding && categoryInAdding && */ state.mode === Mode.AddingQuestion ? (
+            {/*inAdding && categoryInAdding && */ state.formMode === FormMode.AddingQuestion ? (
                 <AddQuestion
                     //question={{ ...initialQuestion, ...questionRow}} 
                     //questionRow={questionRow}
                     showCloseButton={true}
                     source={0} />
             )
-                : (showForm && state.mode === Mode.EditingQuestion) ? (
+                : (showForm && state.formMode === FormMode.EditingQuestion) ? (
                     <>
                         {/* <div class="d-lg-none">hide on lg and wider screens</div> */}
                         <div id='div-question' className="ms-0 d-md-none w-100">
-                            {state.mode === Mode.EditingQuestion && <EditQuestion inLine={true} />}
+                            <EditQuestion inLine={true} odakle='from QuestionRow' />
                         </div>
                         <div className="d-none d-md-block">
                             {Row1}
                         </div>
                     </>
                 )
-                    : (showForm && state.mode === Mode.ViewingQuestion) ? (
+                    : (showForm && state.formMode === FormMode.ViewingQuestion) ? (
                         <>
                             {/* <div class="d-lg-none">hide on lg and wider screens</div> */}
                             <div id='div-question' className="ms-0 d-md-none w-100">
-                                {state.mode === Mode.ViewingQuestion && <ViewQuestion inLine={true} />}
+                                {state.formMode === FormMode.ViewingQuestion && <ViewQuestion inLine={true} />}
                             </div>
                             <div className="d-none d-md-block">
                                 {Row1}

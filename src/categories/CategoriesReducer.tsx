@@ -1,5 +1,5 @@
 import { Reducer } from 'react'
-import { Mode, ActionTypes, ICategoriesState, ICategory, IQuestion, CategoriesActions, ILocStorage, ICategoryKey, ICategoryKeyExtended, IQuestionRow, Question, IQuestionRowDto, IQuestionKey, CategoryKey, QuestionKey, ICategoryDto, QuestionRow, ICategoryRow, CategoryRow, actionsThatModifyFirstLevelCategoryRow, actionTypesToLocalStore as actionTypesStoringToLocalStore, ICategoryRowDto, FormMode } from "categories/types";
+import { ActionTypes, ICategoriesState, ICategory, IQuestion, CategoriesActions, ILocStorage, ICategoryKey, ICategoryKeyExtended, IQuestionRow, Question, IQuestionRowDto, IQuestionKey, CategoryKey, QuestionKey, ICategoryDto, QuestionRow, ICategoryRow, CategoryRow, actionsThatModifyFirstLevelCategoryRow, actionTypesToLocalStore as actionTypesStoringToLocalStore, ICategoryRowDto, FormMode } from "categories/types";
 
 export const initialQuestion: IQuestion = {
   partitionKey: '',
@@ -36,7 +36,7 @@ export const initialCategory: ICategory = {
 }
 
 export const initialState: ICategoriesState = {
-  mode: Mode.None,
+  formMode: FormMode.None,
 
   firstLevelCategoryRows: [],
   firstLevelCategoryRowsLoading: false,
@@ -54,7 +54,6 @@ export const initialState: ICategoriesState = {
   categoryInAdding: null,
   categoryInViewingOrEditing: null,
 
-  questionFormMode: FormMode.None,
   questionInAddingViewingOrEditing: null,
 
   loading: false,
@@ -311,7 +310,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
       return {
         ...state,
         categoryInAdding: category,
-        mode: Mode.AddingCategory
+        formMode: FormMode.AddingCategory
       };
     }
 
@@ -320,7 +319,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
       return {
         ...state,
         // TODO Popravi
-        mode: Mode.None,
+        formMode: FormMode.None,
         loading: false
       }
     }
@@ -343,7 +342,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
 
 
     case ActionTypes.SET_CATEGORY_ROW_EXPANDED: {
-      const { categoryRow, questionFormMode } = action.payload; // category doesn't contain  inAdding 
+      const { categoryRow, formMode } = action.payload; // category doesn't contain  inAdding 
       const { partitionKey, id } = categoryRow;
       const categoryKey = { partitionKey, id };
       const { categoryKeyExpanded } = state;
@@ -356,7 +355,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
         categoryInAdding: null,
         categoryInViewingOrEditing: null,
         questionInAddingViewingOrEditing: null,
-        questionFormMode
+        formMode
       }
     }
 
@@ -382,7 +381,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
       const { partitionKey, id, parentCategory, rootId } = categoryRow;
       return {
         ...state,
-        mode: Mode.ViewingCategory,
+        formMode: FormMode.ViewingCategory,
         loading: false,
         categoryKeyExpanded: state.categoryKeyExpanded ? { ...state.categoryKeyExpanded, questionId: null } : null,
         categoryInViewingOrEditing,
@@ -396,7 +395,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
       const { partitionKey, id, parentCategory, rootId } = categoryRow;
       return {
         ...state,
-        mode: Mode.EditingCategory,
+        formMode: FormMode.EditingCategory,
         loading: false,
         //categoryKeyExpanded: state.categoryKeyExpanded ? { ...state.categoryKeyExpanded, questionId: null } : null,
         categoryInViewingOrEditing,
@@ -464,7 +463,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
       // TODO Popravi
       return {
         ...state,
-        mode: Mode.None,
+        formMode: FormMode.None,
         error: undefined,
         whichRowId: undefined
       };
@@ -474,7 +473,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
     case ActionTypes.CLOSE_CATEGORY_FORM: {
       return {
         ...state,
-        mode: Mode.None
+        formMode: FormMode.None
       };
     }
 
@@ -501,20 +500,19 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
     */
 
     case ActionTypes.SET_QUESTION: {
-      const { question, questionFormMode } = action.payload;
-      const mode = questionFormMode === Mode.AddingQuestion
-        ? Mode.AddingQuestion
-        : questionFormMode === Mode.EditingQuestion
-          ? Mode.EditingQuestion
-          : questionFormMode === Mode.ViewingQuestion
-            ? Mode.ViewingQuestion
-            : Mode.None;
+      const { question, formMode } = action.payload;
+      const mode = formMode === FormMode.AddingQuestion
+        ? FormMode.AddingQuestion
+        : formMode === FormMode.EditingQuestion
+          ? FormMode.EditingQuestion
+          : formMode === FormMode.ViewingQuestion
+            ? FormMode.ViewingQuestion
+            : FormMode.None;
       return {
         ...state,
         categoryInViewingOrEditing: null,
         questionInAddingViewingOrEditing: question,
-        questionFormMode,
-        mode,
+        formMode: mode,
         error: undefined,
         loading: false
       };
@@ -523,7 +521,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
     case ActionTypes.SET_QUESTION_AFTER_ASSIGN_ANSWER: {
       const { question } = action.payload;
       const { parentCategory, id } = question;
-      const inAdding = state.mode === Mode.AddingQuestion;
+      const inAdding = state.formMode === FormMode.AddingQuestion;
 
       // for inAdding, _id is IDBValidKey('000000000000000000000000')
       // thats why we look for q.inAdding instead of q._id === _id
@@ -543,7 +541,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
       // );
       return {
         ...state,
-        mode: state.mode, // keep mode
+        formMode: state.formMode, // keep mode
         loading: false
       };
     }
@@ -555,7 +553,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
         //   ...c,
         //   questionRows: c.questionRows.map((q: IQuestionRow) => ({ ...q }))
         // })),
-        mode: null
+        formMode: FormMode.None
       }
     }
 
@@ -565,13 +563,12 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
       const { categoryKeyExpanded } = state;
       return {
         ...state,
-        mode: Mode.ViewingQuestion,
+        formMode: FormMode.ViewingQuestion,
         loading: false,
         categoryKeyExpanded: categoryKeyExpanded
           ? { ...categoryKeyExpanded, questionId: categoryKeyExpanded.id === parentCategory ? id : null }
           : null,
-        questionInAddingViewingOrEditing: question,
-        questionFormMode: FormMode.Viewing
+        questionInAddingViewingOrEditing: question
       }
     }
 
@@ -581,13 +578,12 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
       const { categoryKeyExpanded } = state;
       return {
         ...state,
-        mode: Mode.EditingQuestion,
         loading: false,
         categoryKeyExpanded: categoryKeyExpanded
           ? { ...categoryKeyExpanded, questionId: categoryKeyExpanded.id === parentCategory ? id : null }
           : null,
         questionInAddingViewingOrEditing: question,
-        questionFormMode: FormMode.Editing
+        formMode: FormMode.EditingQuestion
       }
     }
 
@@ -604,7 +600,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
         //   : c
         // ),
         questionInAddingViewingOrEditing: null,
-        mode: Mode.None
+        formMode: FormMode.None
       }
     }
 
@@ -616,16 +612,16 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
       const category = state.firstLevelCategoryRows.find(c => c.id === parentCategory)
       let questionRows: IQuestionRow[] = [];
       // POPRAVI
-      switch (state.mode) {
-        case Mode.AddingQuestion: {
+      switch (state.formMode) {
+        case FormMode.AddingQuestion: {
           console.assert(category!.inAdding, "expected category.inAdding");
           questionRows = category!.questionRows.filter(q => !q.inAdding)
           // TODO questionInViewingOrEditing: ?;
           break;
         }
 
-        case Mode.ViewingQuestion:
-        case Mode.EditingQuestion: {
+        case FormMode.ViewingQuestion:
+        case FormMode.EditingQuestion: {
           questionInViewingOrEditing = null;
           break;
         }
@@ -640,7 +636,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
         //   ? { ...c, /*questionRows: questionRows, numOfQuestions: questionRows.length,*/ inAdding: false }
         //   : c
         // ),
-        mode: Mode.None,
+        formMode: FormMode.None,
         questionInAddingViewingOrEditing: questionInViewingOrEditing
       };
     }

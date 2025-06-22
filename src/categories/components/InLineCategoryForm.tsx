@@ -10,12 +10,12 @@ import { ActionTypes, FormMode, ICategoryFormProps } from "../types";
 
 import { useCategoryDispatch } from "categories/CategoryProvider";
 
-const InLineCategoryForm = ({ inLine, mode, category, submitForm, children }: ICategoryFormProps) => {
+const InLineCategoryForm = ({ inLine, formMode: mode, category, submitForm, children }: ICategoryFormProps) => {
 
   // const viewing = mode === FormMode.viewing;
   // const editing = mode === FormMode.editing;
   // const adding = mode === FormMode.adding;
-  
+
   //const { _id, level } = initialValues;
 
   const dispatch = useCategoryDispatch();
@@ -55,39 +55,39 @@ const InLineCategoryForm = ({ inLine, mode, category, submitForm, children }: IC
 
   return (
 
-      <div className="d-flex justify-content-start align-items-center primary">  {/* title={_id!.toString()} */}
-        <Form onSubmit={formik.handleSubmit} ref={formRef}>
-          <Form.Group controlId="title">
-            {/* <Form.Label>Title</Form.Label> */}
-            <Form.Control
-              as="input"
-              name="title"
-              ref={titleRef}
-              onChange={formik.handleChange}
-              //onBlur={formik.handleBlur}
-              //onBlur={(e: React.FocusEvent<HTMLTextAreaElement>): void => {
-              // if (isEdit && formik.initialValues.title !== formik.values.title)
-              // formik.submitForm();
-              //}}
-              value={formik.values.title}
-              style={{ width: '100%' }}
-              placeholder="New Category"
-              size="sm"
-            />
-            <Form.Text className="text-danger">
-              {formik.touched.title && formik.errors.title ? (
-                <div className="text-danger">{formik.errors.title}</div>
-              ) : null}
-            </Form.Text>
-          </Form.Group>
-        </Form>
+    <div className="d-flex justify-content-start align-items-center primary">  {/* title={_id!.toString()} */}
+      <Form onSubmit={formik.handleSubmit} ref={formRef}>
+        <Form.Group controlId="title">
+          {/* <Form.Label>Title</Form.Label> */}
+          <Form.Control
+            as="input"
+            name="title"
+            ref={titleRef}
+            onChange={formik.handleChange}
+            //onBlur={formik.handleBlur}
+            //onBlur={(e: React.FocusEvent<HTMLTextAreaElement>): void => {
+            // if (isEdit && formik.initialValues.title !== formik.values.title)
+            // formik.submitForm();
+            //}}
+            value={formik.values.title}
+            style={{ width: '100%' }}
+            placeholder="New Category"
+            size="sm"
+          />
+          <Form.Text className="text-danger">
+            {formik.touched.title && formik.errors.title ? (
+              <div className="text-danger">{formik.errors.title}</div>
+            ) : null}
+          </Form.Text>
+        </Form.Group>
+      </Form>
 
-        <FormButtons
-          cancelForm={cancelForm}
-          handleSubmit={formik.handleSubmit}
-          title={children}
-        />
-      </div>
+      <FormButtons
+        cancelForm={cancelForm}
+        handleSubmit={formik.handleSubmit}
+        title={children}
+      />
+    </div>
   );
 };
 

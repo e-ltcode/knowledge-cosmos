@@ -6,7 +6,7 @@ import QPlus from 'assets/QPlus.png';
 import { ListGroup, Button, Badge } from "react-bootstrap";
 
 import { useGlobalState } from 'global/GlobalProvider'
-import { ActionTypes, ICategoryInfo, ICategoryKey, ICategoryKeyExpanded, ICategoryRow, Mode } from "categories/types";
+import { ActionTypes, ICategoryInfo, ICategoryKey, ICategoryKeyExpanded, ICategoryRow, FormMode } from "categories/types";
 import { useCategoryContext, useCategoryDispatch } from 'categories/CategoryProvider'
 import { useHover } from 'hooks/useHover';
 import { ICategory } from 'categories/types'
@@ -20,22 +20,22 @@ import AddCategory from './AddCategory';
 const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, questionId: string | null }) => {
 
     const { partitionKey, id, title, level, hasSubCategories, subCategories,
-                numOfQuestions, questionRows, inAdding, isExpanded, rootId } = categoryRow;
+        numOfQuestions, questionRows, inAdding, isExpanded, rootId } = categoryRow;
 
     const categoryKey: ICategoryKey = { partitionKey, id }
-    
+
     // const [categoryKey] = useState<ICategoryKey>({ partitionKey, id }); // otherwise reloads
     const [catKeyExpanded] = useState<ICategoryKeyExpanded>({ partitionKey, id, questionId }); // otherwise reloads
 
     const { canEdit, isDarkMode, variant, bg, authUser } = useGlobalState();
 
     const { state, viewCategory, editCategory, deleteCategory, expandCategory, collapseCategory, addQuestion } = useCategoryContext();
-    const { mode, categoryKeyExpanded, categoryInViewingOrEditing } = state;
+    const { formMode, categoryKeyExpanded, categoryInViewingOrEditing } = state;
     const isSelected = categoryInViewingOrEditing && categoryInViewingOrEditing.id === id;
 
     const dispatch = useCategoryDispatch();
 
-    const alreadyAdding = mode === Mode.AddingCategory;
+    const alreadyAdding = formMode === FormMode.AddingCategory;
     // TODO proveri ovo
     const showQuestions = isExpanded && numOfQuestions > 0 // || questions.find(q => q.inAdding) // && !questions.find(q => q.inAdding); // We don't have questions loaded
     console.log("----------------CategoryRow", id, numOfQuestions, questionRows, isExpanded, isSelected)
@@ -79,8 +79,8 @@ const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, q
 
     useEffect(() => {
         if (!isExpanded && !isSelected) {
-            if (categoryKeyExpanded && categoryKeyExpanded.id === id ) { // catKeyExpanded.id) {
-                console.log('%%%%%%%%%%%%%%%%%%%%%%%% Zovem iz CategoryRow',  categoryKeyExpanded.id, id)
+            if (categoryKeyExpanded && categoryKeyExpanded.id === id) { // catKeyExpanded.id) {
+                console.log('%%%%%%%%%%%%%%%%%%%%%%%% Zovem iz CategoryRow', categoryKeyExpanded.id, id)
                 expandCategory(rootId, categoryKey, questionId);
             }
         }
@@ -187,7 +187,7 @@ const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, q
                     </Button>
 
                     <Button variant='link' size="sm" className="py-0 mx-1 float-end"
-                        disabled={ hasSubCategories || numOfQuestions > 0}
+                        disabled={hasSubCategories || numOfQuestions > 0}
                         onClick={deleteCategoryRow}
                     >
                         <FontAwesomeIcon icon={faRemove} size='lg' />
@@ -208,18 +208,18 @@ const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, q
                 className="py-0 px-1 w-100"
                 as="li"
             >
-                {inAdding && mode === Mode.AddingCategory ? (
+                {inAdding && formMode === FormMode.AddingCategory ? (
                     <div>
                         {/* <AddCategory rootId={rootId} categoryKey={categoryKey} inLine={true} /> */}
                         <AddCategory />
                     </div>
                 )
-                    : (mode === Mode.EditingCategory || mode === Mode.ViewingCategory) ? (
+                    : (formMode === FormMode.EditingCategory || formMode === FormMode.ViewingCategory) ? (
                         <>
                             {/* <div class="d-lg-none">hide on lg and wider screens</div> */}
                             <div id='divInLine' className="ms-0 d-md-none w-100">
-                                {mode === Mode.EditingCategory && <EditCategory inLine={false} />}
-                                {mode === Mode.ViewingCategory && <ViewCategory inLine={false} />}
+                                {formMode === FormMode.EditingCategory && <EditCategory inLine={false} />}
+                                {formMode === FormMode.ViewingCategory && <ViewCategory inLine={false} />}
                             </div>
                             <div className="d-none d-md-block">
                                 {Row1}

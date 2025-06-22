@@ -54,7 +54,7 @@ const AddQuestion = ({ closeModal, showCloseButton, source, setError }: IProps) 
             showCloseButton={showCloseButton ?? true}
             source={source ?? 0}
             closeModal={closeModal}
-            formMode={FormMode.Adding}
+            formMode={FormMode.AddingQuestion}
             submitForm={submitForm}
         >
             Create Question

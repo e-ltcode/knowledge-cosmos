@@ -5,9 +5,12 @@ import { useGlobalContext, useGlobalState } from 'global/GlobalProvider'
 import QuestionForm from "categories/components/questions/QuestionForm";
 import { ActionTypes, FormMode, IQuestion, IQuestionKey, QuestionKey } from "categories/types";
 
-const EditQuestion = ({ inLine }: { inLine: boolean }) => {
+const EditQuestion = ({ inLine, odakle }: { inLine: boolean, odakle: string }) => {
     const { state, updateQuestion } = useCategoryContext();
     const { questionLoading, questionInAddingViewingOrEditing } = state;
+    if (!questionInAddingViewingOrEditing)
+        return null;
+
     const { rootId } = questionInAddingViewingOrEditing!;
 
     console.log("#################################### EditQuestion inLine:", { inLine }, { questionInAddingViewingOrEditing })
@@ -41,16 +44,13 @@ const EditQuestion = ({ inLine }: { inLine: boolean }) => {
         //     setTimeout(() => dispatch({ type: ActionTypes.CLOSE_QUESTION_FORM, payload: { question: question } }), 1000);
         // }
     };
-
-    // if (!questionInAddingViewingOrEditing)
-    //     return null;
-
+    
     return (
         <QuestionForm
             question={questionInAddingViewingOrEditing!}
             showCloseButton={true}
             source={0}
-            formMode={FormMode.Editing}
+            formMode={FormMode.EditingQuestion}
             submitForm={submitForm}
         >
             Update Question

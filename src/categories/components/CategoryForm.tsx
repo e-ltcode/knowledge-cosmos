@@ -13,14 +13,14 @@ import VariationList from "categories/VariationList";
 import { Select } from "common/components/Select";
 import { kindOptions } from "common/kindOptions ";
 
-const CategoryForm = ({ inLine, mode, category, questionId, submitForm, children }: ICategoryFormProps) => {
+const CategoryForm = ({ inLine, formMode: mode, category, questionId, submitForm, children }: ICategoryFormProps) => {
 
   const { globalState } = useGlobalContext();
   const { isDarkMode, variant, bg } = globalState;
 
-  const viewing = mode === FormMode.Viewing;
-  const editing = mode === FormMode.Editing;
-  const adding = mode === FormMode.Adding;
+  const viewing = mode === FormMode.ViewingCategory;
+  const editing = mode === FormMode.EditingCategory;
+  const adding = mode === FormMode.AddingCategory;
 
   const { partitionKey, id, title, variations, questionRows, kind } = category;
   const categoryKey: ICategoryKey = { partitionKey, id };

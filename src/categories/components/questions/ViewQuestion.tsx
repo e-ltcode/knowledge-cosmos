@@ -27,7 +27,7 @@ const ViewQuestion = ({ inLine }: { inLine: boolean }) => {
             question={question!}
             showCloseButton={true}
             source={0}
-            formMode={FormMode.Viewing}
+            formMode={FormMode.ViewingQuestion}
             submitForm={() => { }}
         >
             View Question

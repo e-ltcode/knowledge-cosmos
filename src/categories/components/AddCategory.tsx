@@ -55,7 +55,7 @@ const AddCategory = () => {
                 inLine={false}
                 category={formValues}
                 questionId={null}
-                mode={FormMode.Adding}
+                formMode={FormMode.AddingCategory}
                 submitForm={submitForm}
             >
                 Create Category

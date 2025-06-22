@@ -25,14 +25,14 @@ const QuestionForm = ({ formMode, question, submitForm, children, showCloseButto
   const { isDarkMode, variant, bg } = globalState;
 
   const { state } = useCategoryContext();
-  let { questionFormMode } = state;
+  let { formMode: questionFormMode } = state;
 
   if (formMode)
     questionFormMode = formMode;
 
-  const viewing = questionFormMode === FormMode.Viewing;
-  const editing = questionFormMode === FormMode.Editing;
-  const adding = questionFormMode === FormMode.Adding;
+  const viewing = questionFormMode === FormMode.ViewingQuestion;
+  const editing = questionFormMode === FormMode.EditingQuestion;
+  const adding = questionFormMode === FormMode.AddingQuestion;
 
   const isDisabled = viewing;
 
@@ -84,7 +84,7 @@ const QuestionForm = ({ formMode, question, submitForm, children, showCloseButto
     }
   });
 
-  
+
   const setParentCategory = (cat: ICategoryRow) => {
     formik.setFieldValue('parentCategory', cat.id);
     formik.setFieldValue('categoryTitle', cat.title);

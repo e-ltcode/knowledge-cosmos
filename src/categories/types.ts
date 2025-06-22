@@ -1,33 +1,25 @@
 import { ActionMap, IWhoWhen, IRecord, IRecordDto, Dto2WhoWhen, WhoWhen2Dto, IWhoWhenDto } from 'global/types';
 import { IAnswer, IAnswerKey } from 'groups/types';
 
-export const Mode = {
-	UNDEFINED: undefined,
-	None: null,
-	AddingCategory: 'AddingCategory',
-	ViewingCategory: 'ViewingCategory',
-	EditingCategory: 'EditingCategory',
-	DeletingCategory: 'DeletingCategory',
-
-	// tags
-	AddingVariation: 'AddingVariation',
-	EditingVariation: 'EditingVariation',
-	ViewingVariation: 'ViewingVariation',
-
-	//////////////////////////////////////
-	// questions
-	AddingQuestion: 'AddingQuestion',
-	ViewingQuestion: 'ViewingQuestion',
-	EditingQuestion: 'EditingQuestion',
-	DeletingQuestion: 'DeletingQuestion',
-}
-
 export enum FormMode {
 	None = 'None',
-	Viewing = 'Viewing',
-	Editing = 'Editing',
-	Adding = 'Adding'
+
+	AddingCategory = 'AddingCategory',
+	ViewingCategory = 'ViewingCategory',
+	EditingCategory = 'EditingCategory',
+	DeletingCategory = 'DeletingCategory',
+
+	AddingQuestion = 'AddingQuestion',
+	ViewingQuestion = 'ViewingQuestion',
+	EditingQuestion = 'EditingQuestion',
+	DeletingQuestion = 'DeletingQuestion',
+
+	AddingVariation = 'AddingVariation',
+	EditingVariation = 'EditingVariation',
+	ViewingVariation = 'ViewingVariation'
 }
+
+
 
 export interface IFromUserAssignedAnswer {
 	id: string,
@@ -479,7 +471,7 @@ export interface IParentInfo {
 }
 
 export interface ICategoriesState {
-	mode: string | null;
+	formMode: FormMode;
 	firstLevelCategoryRows: ICategoryRow[];
 	firstLevelCategoryRowsLoading: boolean;
 	firstLevelCategoryRowsLoaded: boolean;
@@ -489,7 +481,6 @@ export interface ICategoriesState {
 	categoryNodeOpened: boolean;
 	categoryInAdding: ICategory | null;
 	categoryInViewingOrEditing: ICategory | null;
-	questionFormMode: FormMode;
 	questionInAddingViewingOrEditing: IQuestion | null;
 	loading: boolean;
 	questionLoading: boolean,
@@ -536,7 +527,7 @@ export interface ICategoryFormProps {
 	inLine: boolean;
 	category: ICategory;
 	questionId: string | null;
-	mode: FormMode;
+	formMode: FormMode;
 	submitForm: (category: ICategory) => void,
 	children: string
 }
@@ -747,7 +738,7 @@ export type CategoriesPayload = {
 
 	[ActionTypes.SET_CATEGORY_ROW_EXPANDED]: {
 		categoryRow: ICategoryRow;
-		questionFormMode: FormMode;
+		formMode: FormMode;
 	};
 
 	[ActionTypes.SET_CATEGORY_ROW_COLLAPSED]: {
@@ -823,7 +814,7 @@ export type CategoriesPayload = {
 
 	[ActionTypes.SET_QUESTION]: {
 		categoryRow?: ICategoryRow;
-		questionFormMode: FormMode;
+		formMode: FormMode;
 		question: IQuestion;
 	};
 

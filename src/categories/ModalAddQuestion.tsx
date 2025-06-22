@@ -3,7 +3,7 @@ import { Container, Row, Col, Button, Modal } from "react-bootstrap";
 
 import { useParams } from 'react-router-dom';
 
-import { Mode, ActionTypes, IQuestion, IQuestionRow } from "./types";
+import { ActionTypes, IQuestion, IQuestionRow } from "./types";
 
 import { useGlobalState } from "global/GlobalProvider";
 import { CategoryProvider, useCategoryContext, useCategoryDispatch } from "./CategoryProvider";

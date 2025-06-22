@@ -289,15 +289,15 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
         else {
           console.log('getCategory vratio:', categoryRow)
           if (unshiftQuestion) {
-             categoryRow.questionRows = [unshiftQuestion, ...categoryRow.questionRows];
+            categoryRow.questionRows = [unshiftQuestion, ...categoryRow.questionRows];
           }
           categoryRow.isExpanded = true;
           categoryRow.rootId = rootId;
           categoryRow.questionRows.map(q => q.rootId = rootId);
           if (!questionFormMode) {
-            questionFormMode = canEdit ? FormMode.Editing : FormMode.Viewing
+            questionFormMode = canEdit ? FormMode.EditingQuestion : FormMode.ViewingQuestion
           }
-          dispatch({ type: ActionTypes.SET_CATEGORY_ROW_EXPANDED, payload: { categoryRow, questionFormMode } });
+          dispatch({ type: ActionTypes.SET_CATEGORY_ROW_EXPANDED, payload: { categoryRow, formMode: questionFormMode } });
           return categoryRow; //categoryKey;
         }
       }
@@ -542,7 +542,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
           //inAdding: true
         }
         //if (!isExpanded) {
-        const catRow: ICategoryRow | null = await expandCategory(rootId, categoryKey, null, unshiftQuestion, FormMode.Adding);
+        const catRow: ICategoryRow | null = await expandCategory(rootId, categoryKey, null, unshiftQuestion, FormMode.AddingCategory);
         if (catRow) {
           const question: IQuestion = {
             ...unshiftQuestion,
@@ -555,7 +555,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
             source: 0,
             status: 0
           }
-          dispatch({ type: ActionTypes.SET_QUESTION, payload: { question, questionFormMode: FormMode.Adding } });
+          dispatch({ type: ActionTypes.SET_QUESTION, payload: { question, formMode: FormMode.AddingQuestion } });
         }
         //dispatch({ type: ActionTypes.SET_CATEGORY, payload: { categoryRow: category } }); // ICategory extends ICategory Row
         //}
@@ -600,7 +600,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
               if (questionDto) {
                 const question = new Question(questionDto).question;
                 console.log('Question successfully created')
-                dispatch({ type: ActionTypes.SET_QUESTION, payload: { questionFormMode: FormMode.Editing, question } });
+                dispatch({ type: ActionTypes.SET_QUESTION, payload: { formMode: FormMode.EditingQuestion, question } });
                 //dispatch({ type: ActionTypes.CLOSE_QUESTION_FORM })
                 await loadAllCategoryRows(); // reload
               }
@@ -648,7 +648,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
               else {
                 const parentCategoryKey: ICategoryKey = { partitionKey: parentCategory, id: parentCategory };
                 await expandCategory(rootId, parentCategoryKey, null).then(() => {
-                  dispatch({ type: ActionTypes.SET_QUESTION, payload: { questionFormMode: FormMode.Editing, question: questionRet! } });
+                  dispatch({ type: ActionTypes.SET_QUESTION, payload: { formMode: FormMode.EditingQuestion, question: questionRet! } });
                 });
               }
             }
