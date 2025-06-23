@@ -22,7 +22,7 @@ import { initialAnswer } from 'groups/GroupsReducer';
 
 //const AnswerRow = ({ answer, groupInAdding }: { ref: React.ForwardedRef<HTMLLIElement>, answer: IAnswer, groupInAdding: boolean | undefined }) => {
 const AnswerRow = ({ answerRow, groupInAdding }: { answerRow: IAnswerRow, groupInAdding: boolean | undefined }) => {
-    const { id, partitionKey, parentGroup, title, inAdding, isSelected } = answerRow;
+    const { id, partitionKey, parentGroup, title, isSelected } = answerRow;
     const answerKey: IAnswerKey = { partitionKey, id, parentGroup: parentGroup ?? undefined };
 
     const { canEdit, isDarkMode, variant, bg, authUser } = useGlobalState();
@@ -131,7 +131,7 @@ const AnswerRow = ({ answerRow, groupInAdding }: { answerRow: IAnswerRow, groupI
             className="py-0 px-1 w-100"
             as="li"
         >
-            {inAdding && groupInAdding && state.mode === Mode.AddingAnswer ? (
+            {/*inAdding &&*/ groupInAdding && state.mode === Mode.AddingAnswer ? (
                 <AddAnswer
                     //answer={{ ...initialAnswer, ...answerRow}} 
                     answerRow={answerRow}

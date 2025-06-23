@@ -97,7 +97,8 @@ export interface IQuestion extends IQuestionRow {
 	source: number;
 	status: number;
 	fromUserAssignedAnswer?: IFromUserAssignedAnswer[];
-	//CategoryTitle?: string;
+	categoryTitle?: string;
+	rootId?: string;
 }
 
 export interface ICategoryKey {
@@ -377,20 +378,21 @@ export class QuestionKey {
 
 export class QuestionDto {
 	constructor(question: IQuestion) {
+		const {partitionKey, id, parentCategory, title, source, status, created, modified,
+					numOfAssignedAnswers, numOfRelatedFilters } = question;
 		this.questionDto = {
-			PartitionKey: question.partitionKey,
-			Id: question.id,
-			ParentCategory: question.parentCategory ?? 'null',  // TODO proveri
-			Title: question.title,
-			CategoryTitle: "",
+			PartitionKey: partitionKey,
+			Id: id,
+			ParentCategory: parentCategory ?? 'null',  // TODO proveri
+			Title: title,
 			//AssignedAnswerDtos: question.assignedAnswers.map((a: IAssignedAnswer) => new AssignedAnswerDto(a).assignedAnswerDto),
-			//NumOfAssignedAnswers: question.numOfAssignedAnswers,
+			NumOfAssignedAnswers: numOfAssignedAnswers,
 			//RelatedFilterDtos: question.relatedFilters.map((a: IRelatedFilter) => new RelatedFilterDto(a).relatedFilterDto),
-			//NumOfRelatedFilters: question.numOfAssignedAnswers,
-			Source: question.source,
-			Status: question.status,
-			Created: new WhoWhen2Dto(question.created).whoWhenDto!,
-			Modified: new WhoWhen2Dto(question.modified).whoWhenDto!
+			NumOfRelatedFilters: numOfRelatedFilters,
+			Source: source,
+			Status: status,
+			Created: new WhoWhen2Dto(created).whoWhenDto!,
+			Modified: new WhoWhen2Dto(modified).whoWhenDto!
 		}
 	}
 	questionDto: IQuestionDto;
@@ -402,7 +404,7 @@ export interface IQuestionRowDto extends IRecordDto {
 	ParentCategory: string;
 	NumOfAssignedAnswers?: number,
 	Title: string;
-	CategoryTitle: string;
+	CategoryTitle?: string;
 	Included?: boolean;
 	Source?: number;
 	Status?: number;
@@ -479,9 +481,8 @@ export interface ICategoriesState {
 	categoryId_questionId_done?: string;
 	categoryNodeOpening: boolean;
 	categoryNodeOpened: boolean;
-	categoryInAdding: ICategory | null;
-	categoryInViewingOrEditing: ICategory | null;
-	questionInAddingViewingOrEditing: IQuestion | null;
+	activeCategory: ICategory | null;
+	activeQuestion: IQuestion | null;
 	loading: boolean;
 	questionLoading: boolean,
 	error?: Error;
@@ -508,13 +509,13 @@ export interface ICategoriesContext {
 	updateCategory: (category: ICategory, closeForm: boolean) => void,
 	deleteCategory: (category: ICategory) => void,
 	deleteCategoryVariation: (categoryKey: ICategoryKey, name: string) => void,
-	expandCategory: (rootId: string, categoryKey: ICategoryKey,
-		includeQuestionId: string | null, unshiftQuestion?: IQuestionRow, questionFormMode?: FormMode) => Promise<any>,
+	expandCategory: (rootId: string, categoryKey: ICategoryKey, includeQuestionId: string | null, 
+		newQuestion?: IQuestionRow, questionFormMode?: FormMode) => Promise<any>,
 	collapseCategory: (categoryRow: ICategoryRow) => void,
 	//////////////
 	// questions
 	loadCategoryQuestions: (catParams: ILoadCategoryQuestions) => void;  //(parentInfo: IParentInfo) => void,
-	addQuestion: (isExpanded: boolean, categoryKey: ICategoryKey, rootId: string, unshiftQuestion?: IQuestionRow) => Promise<any>;
+	addQuestion: (categoryKey: ICategoryKey, rootId: string, unshiftQuestion?: IQuestionRow) => Promise<any>;
 	createQuestion: (question: IQuestion, fromModal: boolean) => Promise<any>;
 	viewQuestion: (questionRow: IQuestionRow) => void;
 	editQuestion: (questionRow: IQuestionRow) => void;
@@ -534,7 +535,6 @@ export interface ICategoryFormProps {
 
 export interface IQuestionFormProps {
 	question: IQuestion;
-	formMode?: FormMode;
 	closeModal?: () => void;
 	submitForm: (question: IQuestion) => void,
 	showCloseButton: boolean;
@@ -650,8 +650,8 @@ export const actionsThatModifyFirstLevelCategoryRow = [
 	ActionTypes.SET_CATEGORY_ROW_COLLAPSED,
 	ActionTypes.SET_CATEGORY_TO_VIEW,
 	ActionTypes.SET_CATEGORY_TO_EDIT,
-	ActionTypes.SET_QUESTION_TO_VIEW,
-	ActionTypes.SET_QUESTION_TO_EDIT,
+	// ActionTypes.SET_QUESTION_TO_VIEW,
+	// ActionTypes.SET_QUESTION_TO_EDIT,
 	ActionTypes.CLOSE_CATEGORY_FORM,
 	ActionTypes.CANCEL_CATEGORY_FORM,
 	ActionTypes.ADD_QUESTION

@@ -70,7 +70,7 @@ const AnswerList = ({ title, groupKey, level }: IParentInfo) => {
           return <AnswerRow
             key={answerRow.id}
             answerRow={answerRow}
-            groupInAdding={group!.inAdding}
+            groupInAdding={group!.isExpanded}  // .inAdding}
           />
         })}
         {hasMoreAnswers && (

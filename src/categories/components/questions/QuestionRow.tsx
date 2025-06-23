@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faRemove, faQuestion, faPlus, faReply } from '@fortawesome/free-solid-svg-icons'
 
@@ -17,11 +17,11 @@ import Q from 'assets/Q.png';
 import QPlus from 'assets/QPlus.png';
 
 import { IWhoWhen } from 'global/types';
-import { initialQuestion } from 'categories/CategoriesReducer';
+import { initialQuestion } from 'categories/CategoryReducer';
 
 
 //const QuestionRow = ({ question, categoryInAdding }: { ref: React.ForwardedRef<HTMLLIElement>, question: IQuestion, categoryInAdding: boolean | undefined }) => {
-const QuestionRow = ({ questionRow, categoryInAdding }: { questionRow: IQuestionRow, categoryInAdding: boolean | undefined }) => {
+const QuestionRow = ({ questionRow }: { questionRow: IQuestionRow }) => {
     const { id, partitionKey, parentCategory, title, numOfAssignedAnswers, isSelected, rootId } = questionRow;
     const questionKey: IQuestionKey = { partitionKey, id, parentCategory: parentCategory ?? undefined };
     const categoryKey: ICategoryKey = { partitionKey, id: parentCategory }
@@ -30,13 +30,13 @@ const QuestionRow = ({ questionRow, categoryInAdding }: { questionRow: IQuestion
     const { state, viewQuestion, addQuestion, editQuestion, deleteQuestion } = useCategoryContext();
     const dispatch = useCategoryDispatch();
 
-    const { questionInAddingViewingOrEditing, formMode, categoryKeyExpanded } = state;
-    const showForm = questionInAddingViewingOrEditing && questionInAddingViewingOrEditing.id === id;
-    const { questionId } = categoryKeyExpanded ?? { questionId: null };
+    const { activeQuestion, formMode, categoryKeyExpanded } = state;
+    const fwBold = activeQuestion !== null && activeQuestion.id === id;
 
-    console.log("------------------------ QuestionRow", { id, questionId })
+    const showForm = activeQuestion !== null && activeQuestion.id === id;
 
-    const alreadyAdding = state.formMode === FormMode.AddingQuestion;
+    //const [alreadyAdding] = useState(formMode === FormMode.AddingQuestion);
+    const alreadyAdding = formMode === FormMode.AddingQuestion;
 
     const del = () => {
         questionRow.modified = {
@@ -58,28 +58,22 @@ const QuestionRow = ({ questionRow, categoryInAdding }: { questionRow: IQuestion
             await viewQuestion(questionRow);
     }
 
-    useEffect(() => {
-        (async () => {
-            if (isSelected) {
-                switch (formMode) {
-                    // case FormMode.Adding:
-                    //     //await addQuestion(questionRow);
-                    //     addQuestion(true, categoryKey, rootId!);
-                    //     break;
-                    //case FormMode.None:
-                    case FormMode.EditingQuestion:
-                        canEdit
-                            ? await editQuestion(questionRow)
-                            : await viewQuestion(questionRow);
-                        break;
-                    case FormMode.ViewingQuestion:
-                        await viewQuestion(questionRow);
-                        break;
-                }
-                //onSelectQuestion(id)
-            }
-        })()
-    }, [isSelected]);
+    // useEffect(() => {
+    //     (async () => {
+    //         if (isSelected) {
+    //             switch (formMode) {
+    //                 case FormMode.ViewingQuestion:
+    //                     await viewQuestion(questionRow);
+    //                     break;
+    //                 case FormMode.EditingQuestion:
+    //                     canEdit
+    //                         ? await editQuestion(questionRow)
+    //                         : await viewQuestion(questionRow);
+    //                     break;
+    //             }
+    //         }
+    //     })()
+    // }, [isSelected]);
 
     const [hoverRef, hoverProps] = useHover();
 
@@ -95,7 +89,7 @@ const QuestionRow = ({ questionRow, categoryInAdding }: { questionRow: IQuestion
             <Button
                 variant='link'
                 size="sm"
-                className={`p-0 mx-0 text-decoration-none text-secondary ${isSelected ? 'fw-bold' : ''}`}
+                className={`p-0 mx-0 text-decoration-none text-secondary ${fwBold ? 'fw-bold' : ''}`}
                 title={`id:${id!.toString()}`}
                 onClick={() => onSelectQuestion(id!)}
                 disabled={alreadyAdding}
@@ -131,7 +125,7 @@ const QuestionRow = ({ questionRow, categoryInAdding }: { questionRow: IQuestion
                         title="Add Question"
                         onClick={() => {
                             const categoryInfo: ICategoryInfo = { categoryKey: { partitionKey, id: parentCategory }, level: 0 }
-                            dispatch({ type: ActionTypes.ADD_QUESTION, payload: { categoryInfo } })
+                            addQuestion(categoryKey, rootId!);
                         }}
                     >
                         <img width="22" height="18" src={QPlus} alt="Add Question" />
@@ -148,40 +142,51 @@ const QuestionRow = ({ questionRow, categoryInAdding }: { questionRow: IQuestion
             className="py-0 px-1 w-100"
             as="li"
         >
-            {/*inAdding && categoryInAdding && */ state.formMode === FormMode.AddingQuestion ? (
-                <AddQuestion
-                    //question={{ ...initialQuestion, ...questionRow}} 
-                    //questionRow={questionRow}
-                    showCloseButton={true}
-                    source={0} />
-            )
-                : (showForm && state.formMode === FormMode.EditingQuestion) ? (
-                    <>
-                        {/* <div class="d-lg-none">hide on lg and wider screens</div> */}
-                        <div id='div-question' className="ms-0 d-md-none w-100">
-                            <EditQuestion inLine={true} odakle='from QuestionRow' />
-                        </div>
-                        <div className="d-none d-md-block">
-                            {Row1}
-                        </div>
-                    </>
-                )
-                    : (showForm && state.formMode === FormMode.ViewingQuestion) ? (
-                        <>
-                            {/* <div class="d-lg-none">hide on lg and wider screens</div> */}
-                            <div id='div-question' className="ms-0 d-md-none w-100">
-                                {state.formMode === FormMode.ViewingQuestion && <ViewQuestion inLine={true} />}
-                            </div>
-                            <div className="d-none d-md-block">
-                                {Row1}
-                            </div>
-                        </>
-                    )
-                        : (
-                            Row1
-                        )
+            {showForm && formMode === FormMode.AddingQuestion &&
+                <>
+                    <div id='div-question' className="ms-0 d-md-none w-100">
+                        <AddQuestion
+                            odakle='questionRow'
+                            showCloseButton={true}
+                            source={0} />
+                    </div>
+                    <div className="d-none d-md-block">
+                        {Row1}
+                    </div>
+                </>
             }
-            {/* </div> */}
+
+            {showForm && formMode === FormMode.EditingQuestion &&
+                <>
+                    {/* <div class="d-lg-none">hide on lg and wider screens</div> */}
+                    <div id='div-question' className="ms-0 d-md-none w-100">
+                        <EditQuestion inLine={true} />
+                    </div>
+                    <div className="d-none d-md-block">
+                        {Row1}
+                    </div>
+                </>
+            }
+
+            {showForm && formMode === FormMode.ViewingQuestion &&
+                <>
+                    {/* <div class="d-lg-none">hide on lg and wider screens</div> */}
+                    <div id='div-question' className="ms-0 d-md-none w-100">
+                        {formMode === FormMode.ViewingQuestion &&
+                            <ViewQuestion inLine={true} />}
+                    </div>
+                    <div className="d-none d-md-block">
+                        {Row1}
+                    </div>
+                </>
+            }
+
+            {!showForm &&
+                <div className="d-none d-md-block">
+                    {Row1}
+                </div>
+            }
+
         </ListGroup.Item>
     );
 };

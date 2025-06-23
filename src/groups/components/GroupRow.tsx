@@ -19,7 +19,7 @@ import AnswerList from './answers/AnswerList';
 
 const GroupRow = ({ group, answerId }: { group: IGroup, answerId: string | null }) => {
     const { partitionKey, id, title, level, hasSubGroups, numOfAnswers, answerRows,
-                inAdding,  isExpanded, isSelected } = group;
+                isExpanded, isSelected } = group;
     const [groupKey] = useState<IGroupKey>({ partitionKey, id }); // otherwise reloads
     const [groupKeyExpanded] = useState<IGroupKeyExpanded>({ partitionKey, id, answerId }); // otherwise reloads
 
@@ -182,7 +182,7 @@ const GroupRow = ({ group, answerId }: { group: IGroup, answerId: string | null 
                 className="py-0 px-1 w-100"
                 as="li"
             >
-                {inAdding && mode === Mode.AddingGroup ? (
+                {/*inAdding && */mode === Mode.AddingGroup ? (
                     // <AddGroup groupKey={groupKey} inLine={true} />
                     <div />
                 )
@@ -207,7 +207,7 @@ const GroupRow = ({ group, answerId }: { group: IGroup, answerId: string | null 
             {state.error && state.whichRowId == id && <div className="text-danger">{state.error.message}</div>}
 
             {/* !inAdding && */}
-            {(isExpanded || inAdding) && // Row2
+            {(isExpanded) && // Row2
                 <ListGroup.Item
                     className="py-0 px-0 border-0 border-warning border-bottom-0" // border border-3 "
                     variant={"primary"}

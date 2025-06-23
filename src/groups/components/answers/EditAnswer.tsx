@@ -9,7 +9,7 @@ const EditAnswer = ({ answerKey, inLine }: { answerKey: IAnswerKey, inLine: bool
     const { partitionKey, id, parentGroup } = answerKey;
     const globalState = useGlobalState();
     const { nickName } = globalState.authUser;
-    const { loadAllCategoryRows: loadCats } = useGlobalContext();
+    const { loadAndCacheAllCategoryRows } = useGlobalContext();
 
     const dispatch = useGroupDispatch();
     const { state, updateAnswer, reloadGroupNode } = useGroupContext();
@@ -52,7 +52,7 @@ const EditAnswer = ({ answerKey, inLine }: { answerKey: IAnswerKey, inLine: bool
         const groupChanged = answer!.parentGroup !== object.parentGroup;
         const a = await updateAnswer(object, groupChanged);
         if (answer!.parentGroup !== a.parentGroup) {
-            await loadCats(); // reload, group could have been changed
+            await loadAndCacheAllCategoryRows(); // reload, group could have been changed
             dispatch({ type: ActionTypes.CLEAN_TREE, payload: { id: a.parentGroup } })
             await reloadGroupNode({ partitionKey: '', id: a.parentGroup, answerId: a.id });
         }

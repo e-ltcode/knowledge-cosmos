@@ -15,7 +15,7 @@ import ViewQuestion from "categories/components/questions/ViewQuestion";
 import EditQuestion from "categories/components/questions/EditQuestion";
 import AddQuestion from './components/questions/AddQuestion';
 
-import { initialQuestion } from "categories/CategoriesReducer";
+import { initialQuestion } from "categories/CategoryReducer";
 
 interface IProps {
     show: boolean,
@@ -56,6 +56,7 @@ const ModalAddQuestion = (props: IProps) => {
             </Modal.Header>
             <Modal.Body className="py-0">
                 <AddQuestion
+                    odakle='Modal'
                     closeModal={props.onHide}
                     showCloseButton={false}
                     source={1} /*gmail*/

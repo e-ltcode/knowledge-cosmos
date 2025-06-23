@@ -12,7 +12,7 @@ const AddCategory = () => {
     const globalState = useGlobalState();
     const { nickName } = globalState.authUser;
     const { createCategory, state } = useCategoryContext();
-    const { categoryInAdding } = state;
+    const { activeCategory: categoryInAdding } = state;
 
     // do not use categoryKey
     // const category: ICategory = state.rootCategoryRows.find(c => c.inAdding)!;
@@ -21,7 +21,6 @@ const AddCategory = () => {
     const [formValues] = useState<ICategory>({ ...categoryInAdding! });
 
     const submitForm = async (category: ICategory) => {
-        delete category.inAdding;
         //const id = categoryObject.title.split(' ')[0].toUpperCase();
         //const id = categoryObject.title.replace(' ', '_').toUpperCase();
         // set { partitionKey, id } at server

@@ -10,9 +10,8 @@ export interface IWhoWhen {
 }
 
 export interface IRecord {
-	created?: IWhoWhen,
-	modified?: IWhoWhen,
-	inAdding?: boolean
+	created?: IWhoWhen;
+	modified?: IWhoWhen;
 }
 
 
@@ -168,7 +167,8 @@ export interface IGlobalContext {
 	OpenDB: () => Promise<any>;
 	setLastRouteVisited: (lastRouteVisited: string) => void;
 	health: () => void;
-	loadAllCategoryRows: () => Promise<boolean>;
+	loadAndCacheAllCategoryRows: () => Promise<boolean>;
+	getCat: (categoryId: string) => Promise<ICategoryRow|undefined>;
 	getSubCats: (categoryId: string | null) => Promise<any>;
 	getCatsByKind: (kind: number) => Promise<ICategoryRow[]>;
 	searchQuestions: (filter: string, count: number) => Promise<IQuestionRow[]>;

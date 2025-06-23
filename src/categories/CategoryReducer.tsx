@@ -51,10 +51,8 @@ export const initialState: ICategoriesState = {
     questionId: "qqqqqq111"
   },
   categoryId_questionId_done: undefined,
-  categoryInAdding: null,
-  categoryInViewingOrEditing: null,
-
-  questionInAddingViewingOrEditing: null,
+  activeCategory: null,
+  activeQuestion: null,
 
   loading: false,
   questionLoading: false
@@ -96,7 +94,7 @@ if ('localStorage' in window) {
 
 export { initialCategoriesState };
 
-export const CategoriesReducer: Reducer<ICategoriesState, CategoriesActions> = (state, action) => {
+export const CategoryReducer: Reducer<ICategoriesState, CategoriesActions> = (state, action) => {
 
   console.log('------------------------------->', action.type)
   // -----------------------------------------------------------------------
@@ -304,12 +302,11 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
         rootId,
         level,
         partitionKey: partitionKey!,
-        parentCategory: id,
-        inAdding: true
+        parentCategory: id
       }
       return {
         ...state,
-        categoryInAdding: category,
+        activeCategory: category,
         formMode: FormMode.AddingCategory
       };
     }
@@ -327,7 +324,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
 
     case ActionTypes.SET_CATEGORY: {
       const { categoryRow } = action.payload; // category doesn't contain  inAdding 
-      const categoryInViewingOrEditing = categoryRow; //{ ...categoryRow, isExpanded: false }
+      const activeCategory = categoryRow; //{ ...categoryRow, isExpanded: false }
       const { partitionKey, id, parentCategory, rootId } = categoryRow;
       const categoryKey = { partitionKey, id }
       return {
@@ -335,11 +332,10 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
         // keep mode
         loading: false,
         //categoryKeyExpanded: { ...categoryKey, questionId: null },
-        categoryInViewingOrEditing,
-        questionInAddingViewingOrEditing: null
+        activeCategory,
+        activeQuestion: null
       }
     }
-
 
     case ActionTypes.SET_CATEGORY_ROW_EXPANDED: {
       const { categoryRow, formMode } = action.payload; // category doesn't contain  inAdding 
@@ -347,14 +343,14 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
       const categoryKey = { partitionKey, id };
       const { categoryKeyExpanded } = state;
       const { questionId } = categoryKeyExpanded!;
+      console.log(ActionTypes.SET_CATEGORY_ROW_EXPANDED, categoryRow.questionRows)
       return {
         ...state,
         // keep mode
         loading: false,
         categoryKeyExpanded: { ...categoryKey, questionId },
-        categoryInAdding: null,
-        categoryInViewingOrEditing: null,
-        questionInAddingViewingOrEditing: null,
+        activeCategory: null,
+        activeQuestion: null,
         formMode
       }
     }
@@ -368,38 +364,37 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
         // keep mode
         loading: false,
         categoryKeyExpanded: null, //{ ...categoryKey, questionId: null },
-        categoryInAdding: null,
-        categoryInViewingOrEditing: null,
-        questionInAddingViewingOrEditing: null
+        activeCategory: null,
+        activeQuestion: null
       }
     }
 
 
     case ActionTypes.SET_CATEGORY_TO_VIEW: {
       const { categoryRow } = action.payload;
-      const categoryInViewingOrEditing = { ...categoryRow, isExpanded: false }
+      const activeCategory = { ...categoryRow, isExpanded: false }
       const { partitionKey, id, parentCategory, rootId } = categoryRow;
       return {
         ...state,
         formMode: FormMode.ViewingCategory,
         loading: false,
         categoryKeyExpanded: state.categoryKeyExpanded ? { ...state.categoryKeyExpanded, questionId: null } : null,
-        categoryInViewingOrEditing,
-        questionInAddingViewingOrEditing: null
+        activeCategory,
+        activeQuestion: null
       };
     }
 
     case ActionTypes.SET_CATEGORY_TO_EDIT: {
       const { categoryRow } = action.payload; // ICategory extends ICategoryRow
-      const categoryInViewingOrEditing = { ...categoryRow, isExpanded: false }
+      const activeCategory = { ...categoryRow, isExpanded: false }
       const { partitionKey, id, parentCategory, rootId } = categoryRow;
       return {
         ...state,
         formMode: FormMode.EditingCategory,
         loading: false,
         //categoryKeyExpanded: state.categoryKeyExpanded ? { ...state.categoryKeyExpanded, questionId: null } : null,
-        categoryInViewingOrEditing,
-        questionInAddingViewingOrEditing: null
+        activeCategory,
+        activeQuestion: null
       };
     }
 
@@ -494,7 +489,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
       return {
         ...state,
         mode: Mode.AddingQuestion,
-        questionInViewingOrEditing: question
+        activeQuestion: question
       };
     }
     */
@@ -508,10 +503,11 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
           : formMode === FormMode.ViewingQuestion
             ? FormMode.ViewingQuestion
             : FormMode.None;
+      console.log(ActionTypes.SET_QUESTION, question)
       return {
         ...state,
-        categoryInViewingOrEditing: null,
-        questionInAddingViewingOrEditing: question,
+        activeCategory: null,
+        activeQuestion: question,
         formMode: mode,
         error: undefined,
         loading: false
@@ -568,7 +564,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
         categoryKeyExpanded: categoryKeyExpanded
           ? { ...categoryKeyExpanded, questionId: categoryKeyExpanded.id === parentCategory ? id : null }
           : null,
-        questionInAddingViewingOrEditing: question
+        activeQuestion: question
       }
     }
 
@@ -579,10 +575,11 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
       return {
         ...state,
         loading: false,
-        categoryKeyExpanded: categoryKeyExpanded
-          ? { ...categoryKeyExpanded, questionId: categoryKeyExpanded.id === parentCategory ? id : null }
-          : null,
-        questionInAddingViewingOrEditing: question,
+        // categoryKeyExpanded: categoryKeyExpanded
+        //   ? { ...categoryKeyExpanded, questionId: categoryKeyExpanded.id === parentCategory ? id : null }
+        //   : null,
+        //categoryKeyExpanded: { partitionKey: parentCategory, id: parentCategory, questionId: id },
+        activeQuestion: question,
         formMode: FormMode.EditingQuestion
       }
     }
@@ -599,7 +596,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
         //   }
         //   : c
         // ),
-        questionInAddingViewingOrEditing: null,
+        activeQuestion: null,
         formMode: FormMode.None
       }
     }
@@ -608,21 +605,21 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
     case ActionTypes.CLOSE_QUESTION_FORM: {
       const { question } = action.payload;
       const { partitionKey, id, parentCategory } = question;
-      let questionInViewingOrEditing: IQuestion | null = null
+      let activeQuestion: IQuestion | null = null
       const category = state.firstLevelCategoryRows.find(c => c.id === parentCategory)
       let questionRows: IQuestionRow[] = [];
       // POPRAVI
       switch (state.formMode) {
         case FormMode.AddingQuestion: {
-          console.assert(category!.inAdding, "expected category.inAdding");
-          questionRows = category!.questionRows.filter(q => !q.inAdding)
-          // TODO questionInViewingOrEditing: ?;
+          //console.assert(category!.inAdding, "expected category.inAdding");
+          //questionRows = category!.questionRows.filter(q => !q.inAdding)
+          // TODO activeQuestion: ?;
           break;
         }
 
         case FormMode.ViewingQuestion:
         case FormMode.EditingQuestion: {
-          questionInViewingOrEditing = null;
+          activeQuestion = null;
           break;
         }
 
@@ -637,7 +634,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
         //   : c
         // ),
         formMode: FormMode.None,
-        questionInAddingViewingOrEditing: questionInViewingOrEditing
+        activeQuestion
       };
     }
 

@@ -7,12 +7,12 @@ import CategoryForm from "categories/components/CategoryForm";
 
 const ViewCategory = ({ inLine }: { inLine: boolean }) => {
     const { state } = useCategoryContext();
-    const { categoryInViewingOrEditing, categoryKeyExpanded } = state;
+    const { activeCategory, categoryKeyExpanded } = state;
     const { questionId } = categoryKeyExpanded!;
     return (
         <CategoryForm
             inLine={inLine}
-            category={{ ...categoryInViewingOrEditing! }}
+            category={{ ...activeCategory! }}
             questionId={questionId}
             formMode={FormMode.ViewingCategory}
             submitForm={() => { }}

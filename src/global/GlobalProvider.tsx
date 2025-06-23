@@ -110,7 +110,7 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
   // ---------------------------
   // load all categoryRows
   // ---------------------------
-  const loadAllCategoryRows = useCallback(async (): Promise<any> => {
+  const loadAndCacheAllCategoryRows = useCallback(async (): Promise<any> => {
     return new Promise(async (resolve) => {
       try {
         console.time();
@@ -372,9 +372,9 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
 
   const OpenDB = useCallback(async (): Promise<any> => {
     try {
-      await loadAllCategoryRows();
+      await loadAndCacheAllCategoryRows();
       //await loadShortGroups();
-      console.log('*** loadAllCategoryRows')
+      console.log('*** loadAndCacheAllCategoryRows')
       return true;
     }
     catch (err: any) {
@@ -532,6 +532,19 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
       dispatch({ type: GlobalActionTypes.SET_ERROR, payload: { error } });
       return { subCats: [], parentHeader: 'Kiks subCats' }
     }
+  }, [globalState.categoryRows]);
+
+  const getCat = useCallback(async (id: string): Promise<ICategoryRow|undefined> => {
+    try {
+      const { categoryRows } = globalState;
+      const cat: ICategoryRow | undefined = categoryRows.get(id);  // globalState.cats is Map<string, ICat>
+      return cat;
+    }
+    catch (error: any) {
+      console.log(error)
+      dispatch({ type: GlobalActionTypes.SET_ERROR, payload: { error } });
+    }
+    return undefined;
   }, [globalState.categoryRows]);
 
 
@@ -768,7 +781,8 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
     <GlobalContext.Provider value={{
       globalState, OpenDB, setLastRouteVisited,
       getUser, health,
-      loadAllCategoryRows, getSubCats, getCatsByKind, searchQuestions, getQuestion,
+      loadAndCacheAllCategoryRows, getCat, getSubCats, getCatsByKind,
+      searchQuestions, getQuestion,
       loadShortGroups, getSubShortGroups, getGroupsByKind, searchAnswers, getAnswer,
       setNodesReloaded,
       addHistory, getAnswersRated, addHistoryFilter

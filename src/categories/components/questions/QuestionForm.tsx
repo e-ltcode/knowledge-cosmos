@@ -19,20 +19,17 @@ import { useGlobalContext } from 'global/GlobalProvider';
 import VariationList from 'categories/VariationList';
 import RelatedFilters from './RelatedFilters';
 
-const QuestionForm = ({ formMode, question, submitForm, children, showCloseButton, source = 0, closeModal }: IQuestionFormProps) => {
+const QuestionForm = ({ question, submitForm, children, showCloseButton, source = 0, closeModal }: IQuestionFormProps) => {
 
   const { globalState } = useGlobalContext();
   const { isDarkMode, variant, bg } = globalState;
 
   const { state } = useCategoryContext();
-  let { formMode: questionFormMode } = state;
+  let { formMode } = state;
 
-  if (formMode)
-    questionFormMode = formMode;
-
-  const viewing = questionFormMode === FormMode.ViewingQuestion;
-  const editing = questionFormMode === FormMode.EditingQuestion;
-  const adding = questionFormMode === FormMode.AddingQuestion;
+  const viewing = formMode === FormMode.ViewingQuestion;
+  const editing = formMode === FormMode.EditingQuestion;
+  const adding = formMode === FormMode.AddingQuestion;
 
   const isDisabled = viewing;
 
@@ -95,7 +92,7 @@ const QuestionForm = ({ formMode, question, submitForm, children, showCloseButto
       {/* data-bs-theme={`${isDarkMode ? 'dark' : 'light'}`} */}
       {showCloseButton && <CloseButton onClick={closeForm} className="float-end" />}
       <Row className='text-center'>
-        <Form.Label>Question:{questionFormMode.toString()}</Form.Label>
+        <Form.Label>Question:{formMode.toString()}</Form.Label>
       </Row>
       <Form onSubmit={formik.handleSubmit}>
 

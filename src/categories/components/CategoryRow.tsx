@@ -20,7 +20,7 @@ import AddCategory from './AddCategory';
 const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, questionId: string | null }) => {
 
     const { partitionKey, id, title, level, hasSubCategories, subCategories,
-        numOfQuestions, questionRows, inAdding, isExpanded, rootId } = categoryRow;
+        numOfQuestions, questionRows, isExpanded, rootId } = categoryRow;
 
     const categoryKey: ICategoryKey = { partitionKey, id }
 
@@ -30,8 +30,8 @@ const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, q
     const { canEdit, isDarkMode, variant, bg, authUser } = useGlobalState();
 
     const { state, viewCategory, editCategory, deleteCategory, expandCategory, collapseCategory, addQuestion } = useCategoryContext();
-    const { formMode, categoryKeyExpanded, categoryInViewingOrEditing } = state;
-    const isSelected = categoryInViewingOrEditing && categoryInViewingOrEditing.id === id;
+    const { formMode, categoryKeyExpanded, activeCategory } = state;
+    const isSelected = activeCategory && activeCategory.id === id;
 
     const dispatch = useCategoryDispatch();
 
@@ -172,15 +172,7 @@ const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, q
                         title="Add Question"
                         onClick={async () => {
                             const categoryInfo: ICategoryInfo = { categoryKey: { partitionKey, id: categoryRow.id }, level: categoryRow.level }
-                            addQuestion(isExpanded!, categoryKey, rootId);
-                            /*
-                            if (!isExpanded) {
-                                // await dispatch({ type: ActionTypes.SET_EXPANDED, payload: { categoryKey } });
-                                // alert('sta je');
-                                await expandCategory(rootId, categoryKey, null);
-                            }
-                            await dispatch({ type: ActionTypes.ADD_QUESTION, payload: { categoryInfo } });
-                            */
+                            addQuestion(categoryKey, rootId);
                         }}
                     >
                         <img width="22" height="18" src={QPlus} alt="Add Question" />
@@ -208,7 +200,7 @@ const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, q
                 className="py-0 px-1 w-100"
                 as="li"
             >
-                {inAdding && formMode === FormMode.AddingCategory ? (
+                {/*inAdding &&*/ formMode === FormMode.AddingCategory ? (
                     <div>
                         {/* <AddCategory rootId={rootId} categoryKey={categoryKey} inLine={true} /> */}
                         <AddCategory />
@@ -235,7 +227,7 @@ const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, q
             {state.error && state.whichRowId === id && <div className="text-danger">{state.error.message}</div>}
 
             {/* !inAdding && */}
-            {(isExpanded || inAdding) && // Row2
+            {(isExpanded) && // Row2   //  || inAdding
                 <ListGroup.Item
                     className="py-0 px-0 border-0 border-warning border-bottom-0" // border border-3 "
                     variant={"primary"}
@@ -244,11 +236,9 @@ const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, q
                     {isExpanded &&
                         <>
                             {hasSubCategories &&
-                                // subCategories={subCategories}
                                 <CategoryList level={level + 1} categoryRow={categoryRow} title={title} isExpanded={isExpanded} />
                             }
                             {showQuestions &&
-                                // <QuestionList level={level + 1} cat={categoryRow} title={title} />
                                 <QuestionList level={level + 1} categoryRow={categoryRow} />
                             }
                         </>

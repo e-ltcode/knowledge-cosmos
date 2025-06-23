@@ -5,17 +5,17 @@ import { useGlobalContext, useGlobalState } from 'global/GlobalProvider'
 import QuestionForm from "categories/components/questions/QuestionForm";
 import { ActionTypes, FormMode, IQuestion, IQuestionKey, QuestionKey } from "categories/types";
 
-const EditQuestion = ({ inLine, odakle }: { inLine: boolean, odakle: string }) => {
+const EditQuestion = ({ inLine }: { inLine: boolean }) => {
     const { state, updateQuestion } = useCategoryContext();
-    const { questionLoading, questionInAddingViewingOrEditing } = state;
-    if (!questionInAddingViewingOrEditing)
+    const { questionLoading, activeQuestion  } = state;
+    if (!activeQuestion)
         return null;
 
-    const { rootId } = questionInAddingViewingOrEditing!;
+    const { rootId } = activeQuestion!;
 
-    console.log("#################################### EditQuestion inLine:", { inLine }, { questionInAddingViewingOrEditing })
+    console.log("#################################### EditQuestion inLine:", { inLine }, { activeQuestion })
 
-    if (!questionInAddingViewingOrEditing) {
+    if (!activeQuestion) {
         console.log("#################################### EditQuestion loading ...")
         return <div>Loading question to edit...</div>
     }
@@ -30,13 +30,13 @@ const EditQuestion = ({ inLine, odakle }: { inLine: boolean, odakle: string }) =
             }
         }
 
-        const { parentCategory } = questionInAddingViewingOrEditing;
+        const { parentCategory } = activeQuestion;
         const categoryChanged = parentCategory !== newQuestion.parentCategory;
-        //const questionKey = new QuestionKey(questionInAddingViewingOrEditing).questionKey;
+        //const questionKey = new QuestionKey(activeQuestion).questionKey;
         const question = await updateQuestion(rootId!, parentCategory!, newQuestion, categoryChanged);
-        if (questionInAddingViewingOrEditing.parentCategory !== question.parentCategory) {
+        if (activeQuestion.parentCategory !== question.parentCategory) {
             /*
-             await loadAllCategoryRows(); // reload, group could have been changed
+             await loadAndCacheAllCategoryRows(); // reload, group could have been changed
              await openCategoryNode({ partitionKey: '', id: q.parentCategory, questionId: q.id });
             */
         }
@@ -44,13 +44,12 @@ const EditQuestion = ({ inLine, odakle }: { inLine: boolean, odakle: string }) =
         //     setTimeout(() => dispatch({ type: ActionTypes.CLOSE_QUESTION_FORM, payload: { question: question } }), 1000);
         // }
     };
-    
+
     return (
         <QuestionForm
-            question={questionInAddingViewingOrEditing!}
+            question={activeQuestion!}
             showCloseButton={true}
             source={0}
-            formMode={FormMode.EditingQuestion}
             submitForm={submitForm}
         >
             Update Question

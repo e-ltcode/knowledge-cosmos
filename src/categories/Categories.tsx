@@ -15,7 +15,7 @@ import EditCategory from "categories/components/EditCategory";
 import ViewQuestion from "categories/components/questions/ViewQuestion";
 import EditQuestion from "categories/components/questions/EditQuestion";
 
-import { initialCategory, initialQuestion } from "categories/CategoriesReducer";
+import { initialCategory, initialQuestion } from "categories/CategoryReducer";
 import ModalAddQuestion from './ModalAddQuestion';
 import AddCategory from './components/AddCategory';
 import { AutoSuggestQuestions } from './AutoSuggestQuestions';
@@ -33,7 +33,7 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
         firstLevelCategoryRows, firstLevelCategoryRowsLoading, firstLevelCategoryRowsLoaded,
         categoryKeyExpanded, categoryId_questionId_done,
         categoryNodeOpening, categoryNodeOpened,
-        questionInAddingViewingOrEditing
+        activeQuestion
     } = state;
 
     const { setLastRouteVisited, searchQuestions } = useGlobalContext();
@@ -173,21 +173,20 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
                             {state.formMode === FormMode.AddingCategory && <AddCategory />}
                             {state.formMode === FormMode.ViewingCategory && <ViewCategory inLine={false} />}
                             {state.formMode === FormMode.EditingCategory && <EditCategory inLine={false} />}
-                            {questionInAddingViewingOrEditing &&
+                            {activeQuestion &&
                                 state.formMode === FormMode.ViewingQuestion
                                 ? <ViewQuestion inLine={false} />
                                 : state.formMode === FormMode.EditingQuestion
-                                    ? <EditQuestion inLine={false} odakle='from Categories'/>
+                                    ? <EditQuestion inLine={false} />
                                     : state.formMode === FormMode.AddingQuestion
-                                        ? <AddQuestion />
+                                        ? <AddQuestion odakle='categories' />
                                         : null
                             }
-
                         </div>
                     </Col>
                 </Row>
             </Container>
-            {modalShow && questionInAddingViewingOrEditing &&
+            {modalShow && activeQuestion &&
                 <ModalAddQuestion
                     show={modalShow}
                     onHide={() => { setModalShow(false) }}

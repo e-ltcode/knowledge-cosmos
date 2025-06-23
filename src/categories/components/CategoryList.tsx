@@ -6,8 +6,6 @@ import { useCategoryContext } from "categories/CategoryProvider";
 
 const CategoryList = ({ title, categoryRow, level, isExpanded }: IParentInfo) => {
 
-    // 1) TODO zar ne treba uzimati subcategories from categorysubCategories 
-    // 2) TODO proveri partitionKey, id from <Categories 
     const { state } = useCategoryContext();
     const { categoryKeyExpanded } = state;
 

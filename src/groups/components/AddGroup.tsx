@@ -13,13 +13,12 @@ const AddGroup = ({ groupKey, inLine }: { groupKey: IGroupKey, inLine: boolean }
     const { createGroup, state } = useGroupContext();
 
     // do not use groupKey
-    const group: IGroup = state.groups.find(c => c.inAdding)!;
+    const group: IGroup = state.groups.find(c => c.isExpanded)!; // .inAdding
     console.assert(group, 'group.inAdding should have been found')
 
     const [formValues] = useState(group);
 
     const submitForm = async (groupObject: IGroup) => {
-        delete groupObject.inAdding;
         const object: IGroup = {
             ...groupObject,
             partitionKey: groupKey.partitionKey?? '',  // TODO proveri

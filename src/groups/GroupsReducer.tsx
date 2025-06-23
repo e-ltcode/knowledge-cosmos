@@ -250,7 +250,6 @@ const reducer = (state: IGroupsState, action: GroupsActions) => {
         level,
         partitionKey: partitionKey!,
         parentGroup: id,
-        inAdding: true
       }
       return {
         ...state,
@@ -263,7 +262,6 @@ const reducer = (state: IGroupsState, action: GroupsActions) => {
       const { group } = action.payload;
       return {
         ...state,
-        groups: state.groups.map((c: IGroup) => c.inAdding ? group : c),
         mode: Mode.NULL,
         loading: false
       }
@@ -286,7 +284,6 @@ const reducer = (state: IGroupsState, action: GroupsActions) => {
         groups: state.groups.map((c: IGroup) => c.id === id
           ? {
             ...group,
-            inAdding: c.inAdding,
             isExpanded: c.isExpanded
           }
           : c),
@@ -366,7 +363,6 @@ const reducer = (state: IGroupsState, action: GroupsActions) => {
             ...c,
             answerRows: c.answerRows.concat(answerRows),
             hasMoreAnswers,
-            inAdding: c.inAdding,
             isExpanded: c.isExpanded
           }
           : c),
@@ -383,18 +379,6 @@ const reducer = (state: IGroupsState, action: GroupsActions) => {
         groups: state.groups.filter(c => c.id !== id),
         error: undefined,
         whichRowId: undefined
-      };
-    }
-
-    case ActionTypes.CANCEL_GROUP_FORM:
-    case ActionTypes.CLOSE_GROUP_FORM: {
-      const groups = state.mode === Mode.AddingGroup
-        ? state.groups.filter(c => !c.inAdding)
-        : state.groups
-      return {
-        ...state,
-        mode: Mode.NULL,
-        groups: groups.map((c: IGroup) => ({ ...c, inAdding: false }))
       };
     }
 
@@ -450,7 +434,6 @@ const reducer = (state: IGroupsState, action: GroupsActions) => {
         ...initialAnswer,
         partitionKey: id ?? '',
         parentGroup: id,
-        inAdding: true
       }
       return {
         ...state,
@@ -461,31 +444,7 @@ const reducer = (state: IGroupsState, action: GroupsActions) => {
       };
     }
 
-    case ActionTypes.SET_ANSWER: {
-      const { answer } = action.payload;
-      const { parentGroup, id, title } = answer;
-      const inAdding = state.mode === Mode.AddingAnswer;
-      const groups = state.groups.map((c: IGroup) => c.id === parentGroup
-        ? {
-          ...c,
-          answerRows: inAdding
-            ? c.answerRows.map(q => q.inAdding ? { ...q, title, inAdding: false } : q)
-            : c.answerRows.map(q => q.id === id ? { ...q, title } : q),
-          inAdding: false
-        }
-        : c
-      );
-      console.log('ActionTypes.SET_ANSWER', "^" + parentGroup + "^", groups.filter(c => c.id === parentGroup)[0])
-      return {
-        ...state,
-        groups,
-        groupInViewingOrEditing: null,
-        answerInViewingOrEditing: answer,
-        // mode: Mode.NULL,
-        error: undefined,
-        loading: false
-      };
-    }
+    
 
     case ActionTypes.SET_VIEWING_EDITING_ANSWER: {
       return {
@@ -548,41 +507,7 @@ const reducer = (state: IGroupsState, action: GroupsActions) => {
       }
     }
 
-    case ActionTypes.CANCEL_ANSWER_FORM:
-    case ActionTypes.CLOSE_ANSWER_FORM: {
-      const { answer } = action.payload;
-      const { partitionKey, id, parentGroup } = answer;
-      let answerInViewingOrEditing: IAnswer | null = null
-      const group = state.groups.find(c => c.id === parentGroup)
-      let answerRows: IAnswerRow[] = [];
-      switch (state.mode) {
-        case Mode.AddingAnswer: {
-          console.assert(group!.inAdding, "expected group.inAdding");
-          answerRows = group!.answerRows.filter(q => !q.inAdding)
-          // TODO answerInViewingOrEditing: ?;
-          break;
-        }
-
-        case Mode.ViewingAnswer:
-        case Mode.EditingAnswer: {
-          answerInViewingOrEditing = null;
-          break;
-        }
-
-        default:
-          break;
-      }
-
-      return {
-        ...state,
-        groups: state.groups.map((c: IGroup) => c.id === parentGroup
-          ? { ...c, /*answerRows: answerRows, numOfAnswers: answerRows.length,*/ inAdding: false }
-          : c
-        ),
-        mode: Mode.NULL,
-        answerInViewingOrEditing
-      };
-    }
+    
 
     default:
       return state;  // TODO throw error

@@ -4,20 +4,23 @@ import { useGlobalState } from 'global/GlobalProvider'
 
 import QuestionForm from "categories/components/questions/QuestionForm";
 import { ActionTypes, FormMode, IQuestion, IQuestionRow } from "categories/types";
-import { initialQuestion } from "categories/CategoriesReducer";
+import { initialQuestion } from "categories/CategoryReducer";
 
 interface IProps {
     closeModal?: () => void;
     showCloseButton?: boolean;
     source?: number;
     setError?: (msg: string) => void;
+    odakle: string;
 }
 
-const AddQuestion = ({ closeModal, showCloseButton, source, setError }: IProps) => {
+const AddQuestion = ({ closeModal, showCloseButton, source, setError, odakle }: IProps) => {
 
     const { state, createQuestion } = useCategoryContext();
-    const { questionInAddingViewingOrEditing } = state;
-    const { rootId } = questionInAddingViewingOrEditing!;
+    const { activeQuestion } = state;
+    const rootId = activeQuestion
+        ? activeQuestion.rootId
+        : '';
 
     // const { state, createQuestion, openCategoryNode } = useCategoryContext();
     if (!closeModal) {
@@ -25,11 +28,12 @@ const AddQuestion = ({ closeModal, showCloseButton, source, setError }: IProps) 
         // questionRow.categoryTitle = cat ? cat.title : '';
     }
 
-    const [formValues] = useState(questionInAddingViewingOrEditing);
+    //const [formValues] = useState(activeQuestion);
 
     const submitForm = async (questionObject: IQuestion) => {
         const newQuestion: IQuestion = {
             ...questionObject,
+            rootId: rootId!,
             created: {
                 time: new Date(),
                 nickName: ''
@@ -48,13 +52,18 @@ const AddQuestion = ({ closeModal, showCloseButton, source, setError }: IProps) 
             }
         }
     }
+
+    if (!activeQuestion)
+        return null;
+
+    // activeQuestion.title += odakle
     return (
         <QuestionForm
-            question={formValues!}
+            question={activeQuestion!}
             showCloseButton={showCloseButton ?? true}
             source={source ?? 0}
             closeModal={closeModal}
-            formMode={FormMode.AddingQuestion}
+            //formMode={FormMode.AddingQuestion}
             submitForm={submitForm}
         >
             Create Question
