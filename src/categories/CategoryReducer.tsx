@@ -1,9 +1,10 @@
 import { Reducer } from 'react'
-import { ActionTypes, ICategoriesState, ICategory, IQuestion, CategoriesActions, ILocStorage, ICategoryKey, ICategoryKeyExtended, IQuestionRow, Question, IQuestionRowDto, IQuestionKey, CategoryKey, QuestionKey, ICategoryDto, QuestionRow, ICategoryRow, CategoryRow, actionsThatModifyFirstLevelCategoryRow, actionTypesToLocalStore as actionTypesStoringToLocalStore, ICategoryRowDto, FormMode } from "categories/types";
+import { ActionTypes, ICategoriesState, ICategory, IQuestion, CategoriesActions, ILocStorage, ICategoryKey, ICategoryKeyExtended, IQuestionRow, Question, IQuestionRowDto, IQuestionKey, CategoryKey, QuestionKey, ICategoryDto, QuestionRow, ICategoryRow, CategoryRow, actionsThatModifyTreeView, actionTypesToLocalStore as actionTypesStoringToLocalStore, ICategoryRowDto, FormMode } from "categories/types";
 
 export const initialQuestion: IQuestion = {
   partitionKey: '',
   id: 'will be given by DB',
+  rootId: '',
   parentCategory: '',
   categoryTitle: '',
   title: '',
@@ -135,16 +136,24 @@ export const CategoryReducer: Reducer<ICategoriesState, CategoriesActions> = (st
   const { firstLevelCategoryRows } = state;
 
   let newFirstLevelCategoryRows: ICategoryRow[];
-  if (categoryRow && actionsThatModifyFirstLevelCategoryRow.includes(action.type)) {
+  if (categoryRow && actionsThatModifyTreeView.includes(action.type)) {
     const { rootId, id } = categoryRow;
-    const firstLevelRow: ICategoryRow = firstLevelCategoryRows.find(c => c.id === rootId)!;
-    DeepClone.idToSet = id;
-    DeepClone.newCategoryRow = categoryRow;
-    const newFirstLevelRow = new DeepClone(firstLevelRow).categoryRow;
-    newFirstLevelCategoryRows = firstLevelCategoryRows.map(c => c.id === rootId
-      ? newFirstLevelRow
-      : new DeepClone(c).categoryRow
-    );
+    if (id === rootId) {
+      newFirstLevelCategoryRows = firstLevelCategoryRows.map(c => c.id === rootId
+        ? new DeepClone(categoryRow).categoryRow
+        : new DeepClone(c).categoryRow
+      );
+    }
+    else {
+      const firstLevelRow: ICategoryRow = firstLevelCategoryRows.find(c => c.id === rootId)!;
+      DeepClone.idToSet = id;
+      DeepClone.newCategoryRow = categoryRow;
+      const newFirstLevelRow = new DeepClone(firstLevelRow).categoryRow;
+      newFirstLevelCategoryRows = firstLevelCategoryRows.map(c => c.id === rootId
+        ? newFirstLevelRow
+        : new DeepClone(c).categoryRow
+      );
+    }
   }
   else {
     // just clone to enable time-travel debugging
@@ -311,12 +320,13 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
       };
     }
 
-    case ActionTypes.SET_ADDED_CATEGORY: {
-      const { category } = action.payload;
+    case ActionTypes.SET_CATEGORY_ADDED: {
+      const { categoryRow } = action.payload;
       return {
         ...state,
         // TODO Popravi
         formMode: FormMode.None,
+        activeCategory: categoryRow!,
         loading: false
       }
     }
@@ -337,6 +347,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
       }
     }
 
+    /*
     case ActionTypes.SET_CATEGORY_ROW_EXPANDED: {
       const { categoryRow, formMode } = action.payload; // category doesn't contain  inAdding 
       const { partitionKey, id } = categoryRow;
@@ -354,6 +365,7 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
         formMode
       }
     }
+      */
 
     case ActionTypes.SET_CATEGORY_ROW_COLLAPSED: {
       const { categoryRow } = action.payload; // category doesn't contain  inAdding 
@@ -384,7 +396,8 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
       };
     }
 
-    case ActionTypes.SET_CATEGORY_TO_EDIT: {
+    case ActionTypes.SET_CATEGORY_TO_EDIT:   // doesn't modify TreeView
+    case ActionTypes.SET_CATEGORY_UPDATED: { // modifies TreeView
       const { categoryRow } = action.payload; // ICategory extends ICategoryRow
       const activeCategory = { ...categoryRow, isExpanded: false }
       const { partitionKey, id, parentCategory, rootId } = categoryRow;
@@ -453,11 +466,12 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
       }
     }
 
-    case ActionTypes.DELETE: {
+    case ActionTypes.DELETE_CATEGORY: {
       const { id } = action.payload;
       // TODO Popravi
       return {
         ...state,
+        activeCategory: null,
         formMode: FormMode.None,
         error: undefined,
         whichRowId: undefined
@@ -496,19 +510,19 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
 
     case ActionTypes.SET_QUESTION: {
       const { question, formMode } = action.payload;
-      const mode = formMode === FormMode.AddingQuestion
-        ? FormMode.AddingQuestion
-        : formMode === FormMode.EditingQuestion
-          ? FormMode.EditingQuestion
-          : formMode === FormMode.ViewingQuestion
-            ? FormMode.ViewingQuestion
-            : FormMode.None;
+      // const mode = formMode === FormMode.AddingQuestion
+      //   ? FormMode.AddingQuestion
+      //   : formMode === FormMode.EditingQuestion
+      //     ? FormMode.EditingQuestion
+      //     : formMode === FormMode.ViewingQuestion
+      //       ? FormMode.ViewingQuestion
+      //       : FormMode.None;
       console.log(ActionTypes.SET_QUESTION, question)
       return {
         ...state,
         activeCategory: null,
         activeQuestion: question,
-        formMode: mode,
+        formMode,
         error: undefined,
         loading: false
       };
@@ -537,21 +551,12 @@ const reducer = (state: ICategoriesState, action: CategoriesActions): ICategorie
       // );
       return {
         ...state,
-        formMode: state.formMode, // keep mode
+        //formMode: state.formMode, // keep mode
+        activeQuestion: question,
         loading: false
       };
     }
-    case ActionTypes.SET_VIEWING_EDITING_QUESTION: {
-      // Popravi
-      return {
-        ...state,
-        // firstLevelCategoryRows: newFirstLevelCategoryRows.map((c: ICategory) => ({
-        //   ...c,
-        //   questionRows: c.questionRows.map((q: IQuestionRow) => ({ ...q }))
-        // })),
-        formMode: FormMode.None
-      }
-    }
+
 
     case ActionTypes.SET_QUESTION_TO_VIEW: {
       const { question } = action.payload;

@@ -31,14 +31,15 @@ const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, q
 
     const { state, viewCategory, editCategory, deleteCategory, expandCategory, collapseCategory, addQuestion } = useCategoryContext();
     const { formMode, categoryKeyExpanded, activeCategory } = state;
-    const isSelected = activeCategory && activeCategory.id === id;
+    const isSelected = activeCategory !== null && activeCategory.id === id;
+    const showForm = isSelected;
 
     const dispatch = useCategoryDispatch();
 
     const alreadyAdding = formMode === FormMode.AddingCategory;
     // TODO proveri ovo
     const showQuestions = isExpanded && numOfQuestions > 0 // || questions.find(q => q.inAdding) // && !questions.find(q => q.inAdding); // We don't have questions loaded
-    console.log("----------------CategoryRow", id, numOfQuestions, questionRows, isExpanded, isSelected)
+    console.log("----------------CategoryRow", id, numOfQuestions, questionRows, isExpanded)
 
     const deleteCategoryRow = () => {
         categoryRow.modified = {
@@ -52,7 +53,7 @@ const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, q
         if (isExpanded)
             await collapseCategory(categoryRow);
         else
-            await expandCategory(rootId, categoryKey, questionId ?? null);
+            await expandCategory(rootId!, categoryKey, questionId ?? null);
     }
 
 
@@ -78,15 +79,12 @@ const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, q
         }
 
     useEffect(() => {
-        if (!isExpanded && !isSelected) {
+        if (numOfQuestions > 0 && !isExpanded) { //!isExpanded && !isSelected) {
             if (categoryKeyExpanded && categoryKeyExpanded.id === id) { // catKeyExpanded.id) {
                 console.log('%%%%%%%%%%%%%%%%%%%%%%%% Zovem iz CategoryRow', categoryKeyExpanded.id, id)
-                expandCategory(rootId, categoryKey, questionId);
+                expandCategory(rootId!, categoryKey, questionId);
             }
         }
-        // else if (isSelected)
-        //     onSelectCategory();
-
     }, [id, isExpanded, isSelected, expandCategory, categoryKeyExpanded]) // 
 
     const [hoverRef, hoverProps] = useHover();
@@ -172,7 +170,7 @@ const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, q
                         title="Add Question"
                         onClick={async () => {
                             const categoryInfo: ICategoryInfo = { categoryKey: { partitionKey, id: categoryRow.id }, level: categoryRow.level }
-                            addQuestion(categoryKey, rootId);
+                            addQuestion(categoryKey, rootId!);
                         }}
                     >
                         <img width="22" height="18" src={QPlus} alt="Add Question" />
@@ -200,28 +198,47 @@ const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, q
                 className="py-0 px-1 w-100"
                 as="li"
             >
-                {/*inAdding &&*/ formMode === FormMode.AddingCategory ? (
-                    <div>
-                        {/* <AddCategory rootId={rootId} categoryKey={categoryKey} inLine={true} /> */}
-                        <AddCategory />
-                    </div>
-                )
-                    : (formMode === FormMode.EditingCategory || formMode === FormMode.ViewingCategory) ? (
-                        <>
-                            {/* <div class="d-lg-none">hide on lg and wider screens</div> */}
-                            <div id='divInLine' className="ms-0 d-md-none w-100">
-                                {formMode === FormMode.EditingCategory && <EditCategory inLine={false} />}
-                                {formMode === FormMode.ViewingCategory && <ViewCategory inLine={false} />}
-                            </div>
-                            <div className="d-none d-md-block">
-                                {Row1}
-                            </div>
-                        </>
-                    )
-                        : (
-                            Row1
-                        )
+                {/*inAdding &&*/showForm && formMode === FormMode.AddingCategory &&
+                    <>
+                        <div>
+                            {/* <AddCategory rootId={rootId} categoryKey={categoryKey} inLine={true} /> */}
+                            <AddCategory />
+                        </div>
+                        <div className="d-none d-md-block">
+                            {Row1}
+                        </div>
+                    </>
                 }
+                {showForm && formMode === FormMode.EditingCategory &&
+                    <>
+                        {/* <div class="d-lg-none">hide on lg and wider screens</div> */}
+                        <div id='divInLine' className="ms-0 d-md-none w-100">
+                            {formMode === FormMode.EditingCategory && <EditCategory inLine={false} />}
+                        </div>
+                        <div className="d-none d-md-block">
+                            {Row1}
+                        </div>
+                    </>
+                }
+
+                {showForm && formMode === FormMode.ViewingCategory &&
+                    <>
+                        {/* <div class="d-lg-none">hide on lg and wider screens</div> */}
+                        <div id='divInLine' className="ms-0 d-md-none w-100">
+                            <ViewCategory inLine={false} />
+                        </div>
+                        <div className="d-none d-md-block">
+                            {Row1}
+                        </div>
+                    </>
+                }
+
+                {!showForm &&
+                    <div className="d-none d-md-block">
+                        {Row1}
+                    </div>
+                }
+                
             </ListGroup.Item>
 
             {state.error && state.whichRowId === id && <div className="text-danger">{state.error.message}</div>}

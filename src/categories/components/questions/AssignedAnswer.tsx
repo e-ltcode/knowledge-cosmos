@@ -36,7 +36,7 @@ const AssignedAnswer = ({ questionTitle, assignedAnswer, isDisabled, unAssignAns
 
     const alreadyAdding = false;
 
-    const del = () => {
+    const removeAnswer = () => {
         unAssignAnswer(answerKey)
     };
 
@@ -119,8 +119,8 @@ const AssignedAnswer = ({ questionTitle, assignedAnswer, isDisabled, unAssignAns
             </Button>
 
             {canEdit && !alreadyAdding && hoverProps.isHovered && !isDisabled &&
-                <Button variant='link' size="sm" className="ms-1 py-0 mx-1 text-info"
-                    onClick={del}
+                <Button variant='link' size="sm" className="ms-1 py-0 mx-1 text-secondary"
+                    onClick={removeAnswer}
                 >
                     <FontAwesomeIcon icon={faRemove} size='lg' />
                 </Button>

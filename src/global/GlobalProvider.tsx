@@ -182,7 +182,8 @@ export const GlobalProvider: React.FC<Props> = ({ children }) => {
                 title: Title,
                 categoryTitle: '',
                 numOfAssignedAnswers: NumOfAssignedAnswers ?? 0,
-                isSelected: Included !== undefined
+                isSelected: Included !== undefined,
+                rootId: ''   // TODO do not use roort id in search
               }
             })
             // const list: IQuestionRow[] = dtos.map((q: IQuestionRowDto) => ({

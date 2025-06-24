@@ -87,7 +87,7 @@ export interface IQuestionRow extends IRecord {
 	parentCategory: string | null;
 	categoryTitle?: string;
 	isSelected?: boolean;
-	rootId?: string,
+	rootId: string
 }
 
 export interface IQuestion extends IQuestionRow {
@@ -98,7 +98,6 @@ export interface IQuestion extends IQuestionRow {
 	status: number;
 	fromUserAssignedAnswer?: IFromUserAssignedAnswer[];
 	categoryTitle?: string;
-	rootId?: string;
 }
 
 export interface ICategoryKey {
@@ -137,7 +136,7 @@ export interface ICategoryRowDto extends IRecordDto {
 	PartitionKey: string;
 	Id: string;
 	Kind: number;
-	RootId?: string;
+	RootId: string | null;
 	ParentCategory: string | null;
 	Title: string;
 	Link: string | null;
@@ -156,7 +155,7 @@ export interface ICategoryRow extends IRecord {
 	partitionKey: string; // | null is a valid value so you can store data with null value in indexeddb 
 	id: string;
 	kind: number;
-	rootId: string;
+	rootId: string | null;
 	parentCategory: string | null; // | null is a valid value so you can store data with null value in indexeddb 
 	title: string;
 	link: string | null;
@@ -193,11 +192,13 @@ export class CategoryRow {
 			hasSubCategories: HasSubCategories!,
 			subCategories: SubCategories.map(dto => new CategoryRow(dto).categoryRow),
 			numOfQuestions: NumOfQuestions,
-			questionRows: QuestionRowDtos ? QuestionRowDtos.map(dto => new QuestionRow(dto).questionRow) : [],
+			questionRows: QuestionRowDtos
+				? QuestionRowDtos.map(dto => new QuestionRow({ ...dto, RootId: RootId ?? undefined }).questionRow)
+				: [],
 			level: Level,
 			kind: Kind,
 			isExpanded: IsExpanded,
-			rootId: RootId!
+			rootId: RootId
 		}
 	}
 	categoryRow: ICategoryRow;
@@ -205,18 +206,20 @@ export class CategoryRow {
 
 export class QuestionRow {
 	constructor(rowDto: IQuestionRowDto) { //, parentCategory: string) {
+		const { PartitionKey, Id, ParentCategory, NumOfAssignedAnswers, Title, CategoryTitle, Created, Modified, Included, RootId } = rowDto;
 		this.questionRow = {
-			partitionKey: rowDto.PartitionKey,
-			id: rowDto.Id,
-			parentCategory: rowDto.ParentCategory,
-			numOfAssignedAnswers: rowDto.NumOfAssignedAnswers ?? 0,
-			title: rowDto.Title,
-			categoryTitle: rowDto.CategoryTitle,
-			created: new Dto2WhoWhen(rowDto.Created!).whoWhen,
-			modified: rowDto.Modified
-				? new Dto2WhoWhen(rowDto.Modified).whoWhen
+			partitionKey: PartitionKey,
+			id: Id,
+			rootId: RootId!,
+			parentCategory: ParentCategory,
+			numOfAssignedAnswers: NumOfAssignedAnswers ?? 0,
+			title: Title,
+			categoryTitle: CategoryTitle,
+			created: new Dto2WhoWhen(Created!).whoWhen,
+			modified: Modified
+				? new Dto2WhoWhen(Modified).whoWhen
 				: undefined,
-			isSelected: rowDto.Included
+			isSelected: Included
 		}
 	}
 	questionRow: IQuestionRow
@@ -342,6 +345,7 @@ export class Question {
 			: [];
 		// TODO possible to call base class construtor
 		this.question = {
+			rootId: '', // TODO will be set later
 			parentCategory: dto.ParentCategory,
 			partitionKey: dto.PartitionKey,
 			id: dto.Id,
@@ -378,8 +382,8 @@ export class QuestionKey {
 
 export class QuestionDto {
 	constructor(question: IQuestion) {
-		const {partitionKey, id, parentCategory, title, source, status, created, modified,
-					numOfAssignedAnswers, numOfRelatedFilters } = question;
+		const { partitionKey, id, parentCategory, title, source, status, created, modified,
+			numOfAssignedAnswers, numOfRelatedFilters } = question;
 		this.questionDto = {
 			PartitionKey: partitionKey,
 			Id: id,
@@ -401,6 +405,7 @@ export class QuestionDto {
 export interface IQuestionRowDto extends IRecordDto {
 	PartitionKey: string;
 	Id: string;
+	RootId?: string,
 	ParentCategory: string;
 	NumOfAssignedAnswers?: number,
 	Title: string;
@@ -509,7 +514,7 @@ export interface ICategoriesContext {
 	updateCategory: (category: ICategory, closeForm: boolean) => void,
 	deleteCategory: (category: ICategory) => void,
 	deleteCategoryVariation: (categoryKey: ICategoryKey, name: string) => void,
-	expandCategory: (rootId: string, categoryKey: ICategoryKey, includeQuestionId: string | null, 
+	expandCategory: (rootId: string, categoryKey: ICategoryKey, includeQuestionId: string | null,
 		newQuestion?: IQuestionRow, questionFormMode?: FormMode) => Promise<any>,
 	collapseCategory: (categoryRow: ICategoryRow) => void,
 	//////////////
@@ -520,7 +525,7 @@ export interface ICategoriesContext {
 	viewQuestion: (questionRow: IQuestionRow) => void;
 	editQuestion: (questionRow: IQuestionRow) => void;
 	updateQuestion: (rootId: string, oldParentCategory: string, question: IQuestion, categoryChanged: boolean) => Promise<any>;
-	assignQuestionAnswer: (action: string, questionKey: IQuestionKey, answerKey: IAnswerKey, assigned: IWhoWhen) => Promise<any>;
+	assignQuestionAnswer: (action: 'Assign' | 'UnAssign', questionKey: IQuestionKey, answerKey: IAnswerKey, assigned: IWhoWhen) => Promise<any>;
 	deleteQuestion: (questionRow: IQuestionRow) => void;
 }
 
@@ -613,10 +618,11 @@ export enum ActionTypes {
 	SET_CATEGORY_ROW = 'SET_CATEGORY_ROW',
 	SET_CATEGORY_ROW_EXPANDED = 'SET_CATEGORY_ROW_EXPANDED',
 	SET_CATEGORY_ROW_COLLAPSED = 'SET_CATEGORY_ROW_COLLAPSED',
-	SET_ADDED_CATEGORY = 'SET_ADDED_CATEGORY',
+	SET_CATEGORY_ADDED = 'SET_CATEGORY_ADDED',
 	SET_CATEGORY_TO_VIEW = 'SET_CATEGORY_TO_VIEW',
 	SET_CATEGORY_TO_EDIT = 'SET_CATEGORY_TO_EDIT',
-	DELETE = 'DELETE',
+	SET_CATEGORY_UPDATED = 'SET_CATEGORY_UPDATED',
+	DELETE_CATEGORY = 'DELETE_CATEGORY',
 	RESET_CATEGORY_QUESTION_DONE = 'RESET_CATEGORY_QUESTION_DONE',
 
 	CLOSE_CATEGORY_FORM = 'CLOSE_CATEGORY_FORM',
@@ -629,7 +635,6 @@ export enum ActionTypes {
 	// questions
 	LOAD_CATEGORY_QUESTIONS = 'LOAD_CATEGORY_QUESTIONS',
 	ADD_QUESTION = 'ADD_QUESTION',
-	SET_VIEWING_EDITING_QUESTION = 'SET_VIEWING_EDITING_QUESTION',
 	SET_QUESTION_TO_VIEW = 'SET_QUESTION_TO_VIEW',
 	SET_QUESTION_TO_EDIT = 'SET_QUESTION_TO_EDIT',
 
@@ -643,13 +648,16 @@ export enum ActionTypes {
 	CANCEL_QUESTION_FORM = 'CANCEL_QUESTION_FORM'
 }
 
-export const actionsThatModifyFirstLevelCategoryRow = [
+//export const actionsThatModifyFirstLevelCategoryRow = [
+export const actionsThatModifyTreeView = [
 	// ActionTypes.SET_FIRST_LEVEL_CATEGORY_ROWS keep commented
 	// ActionTypes.SET_CATEGORY_NODE_OPENED
+	ActionTypes.DELETE_CATEGORY,
 	ActionTypes.SET_CATEGORY_ROW_EXPANDED,
 	ActionTypes.SET_CATEGORY_ROW_COLLAPSED,
-	ActionTypes.SET_CATEGORY_TO_VIEW,
-	ActionTypes.SET_CATEGORY_TO_EDIT,
+	ActionTypes.SET_CATEGORY_UPDATED,
+	//ActionTypes.SET_CATEGORY_TO_VIEW,
+	//ActionTypes.SET_CATEGORY_TO_EDIT,
 	// ActionTypes.SET_QUESTION_TO_VIEW,
 	// ActionTypes.SET_QUESTION_TO_EDIT,
 	ActionTypes.CLOSE_CATEGORY_FORM,
@@ -736,6 +744,11 @@ export type CategoriesPayload = {
 		categoryRow: ICategoryRow; // ICategory extends ICategoryRow
 	};
 
+	[ActionTypes.SET_CATEGORY_UPDATED]: {
+		categoryRow: ICategoryRow; // ICategory extends ICategoryRow
+	};
+
+
 	[ActionTypes.SET_CATEGORY_ROW_EXPANDED]: {
 		categoryRow: ICategoryRow;
 		formMode: FormMode;
@@ -745,12 +758,12 @@ export type CategoriesPayload = {
 		categoryRow: ICategoryRow;
 	};
 
-	[ActionTypes.SET_ADDED_CATEGORY]: {
+	[ActionTypes.SET_CATEGORY_ADDED]: {
 		categoryRow?: ICategoryRow;
-		category: ICategory;
+		//category: ICategory;
 	};
 
-	[ActionTypes.DELETE]: {
+	[ActionTypes.DELETE_CATEGORY]: {
 		categoryRow?: ICategoryRow;
 		id: string;
 	};
@@ -792,10 +805,6 @@ export type CategoriesPayload = {
 		categoryRow?: ICategoryRow;
 		categoryInfo: ICategoryInfo;
 	}
-
-	[ActionTypes.SET_VIEWING_EDITING_QUESTION]: {
-		categoryRow?: ICategoryRow;
-	};
 
 	[ActionTypes.SET_QUESTION_TO_VIEW]: {
 		categoryRow?: ICategoryRow;

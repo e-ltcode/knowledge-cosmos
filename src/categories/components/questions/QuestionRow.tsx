@@ -31,8 +31,7 @@ const QuestionRow = ({ questionRow }: { questionRow: IQuestionRow }) => {
     const dispatch = useCategoryDispatch();
 
     const { activeQuestion, formMode, categoryKeyExpanded } = state;
-    const fwBold = activeQuestion !== null && activeQuestion.id === id;
-
+    
     const showForm = activeQuestion !== null && activeQuestion.id === id;
 
     //const [alreadyAdding] = useState(formMode === FormMode.AddingQuestion);
@@ -58,22 +57,22 @@ const QuestionRow = ({ questionRow }: { questionRow: IQuestionRow }) => {
             await viewQuestion(questionRow);
     }
 
-    // useEffect(() => {
-    //     (async () => {
-    //         if (isSelected) {
-    //             switch (formMode) {
-    //                 case FormMode.ViewingQuestion:
-    //                     await viewQuestion(questionRow);
-    //                     break;
-    //                 case FormMode.EditingQuestion:
-    //                     canEdit
-    //                         ? await editQuestion(questionRow)
-    //                         : await viewQuestion(questionRow);
-    //                     break;
-    //             }
-    //         }
-    //     })()
-    // }, [isSelected]);
+    useEffect(() => {
+        (async () => {
+            if (isSelected) {
+                switch (formMode) {
+                    case FormMode.ViewingQuestion:
+                        await viewQuestion(questionRow);
+                        break;
+                    case FormMode.EditingQuestion:
+                        canEdit
+                            ? await editQuestion(questionRow)
+                            : await viewQuestion(questionRow);
+                        break;
+                }
+            }
+        })()
+    }, [isSelected]);
 
     const [hoverRef, hoverProps] = useHover();
 
@@ -89,7 +88,7 @@ const QuestionRow = ({ questionRow }: { questionRow: IQuestionRow }) => {
             <Button
                 variant='link'
                 size="sm"
-                className={`p-0 mx-0 text-decoration-none text-secondary ${fwBold ? 'fw-bold' : ''}`}
+                className={`p-0 mx-0 text-decoration-none text-secondary ${showForm ? 'fw-bold' : ''}`}
                 title={`id:${id!.toString()}`}
                 onClick={() => onSelectQuestion(id!)}
                 disabled={alreadyAdding}

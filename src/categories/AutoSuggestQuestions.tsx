@@ -168,7 +168,7 @@ export class AutoSuggestQuestions extends React.Component<{
 			console.log('--------->>>>> getSuggestions')
 			var questionRows: IQuestionRow[] = await this.searchQuestions(escapedValue, 20);
 			questionRows.forEach((quest: IQuestionRow) => {
-				const { id, partitionKey, parentCategory, title, numOfAssignedAnswers, isSelected } = quest;
+				const { id, partitionKey, parentCategory, title, numOfAssignedAnswers, isSelected, rootId } = quest;
 				const questionKey = { partitionKey, id }
 				if (!questionKeys.includes(questionKey)) {
 					questionKeys.push(questionKey);
@@ -177,6 +177,7 @@ export class AutoSuggestQuestions extends React.Component<{
 					const quest: IQuestionRow = {
 						partitionKey,
 						id,
+						rootId,
 						parentCategory,
 						numOfAssignedAnswers,
 						title,
