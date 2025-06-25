@@ -3,7 +3,7 @@ import { Container, Row, Col, Button } from "react-bootstrap";
 
 import { useParams } from 'react-router-dom';
 
-import { ActionTypes, ICategoryKey, IQuestionKey, ICategoryKeyExpanded, ICategory, ICategoryRow, FormMode } from "./types";
+import { ActionTypes, ICategoryKey, IQuestionKey, ICategoryKeyExpanded, ICategory, ICategoryRow, FormMode, IsCategory } from "./types";
 
 import { useGlobalContext, useGlobalState } from 'global/GlobalProvider';
 
@@ -30,7 +30,7 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
     console.log("=== Categories", categoryId_questionId)
     const { state, openCategoryNode, loadFirstLevelCategoryRows } = useCategoryContext();
     const {
-        firstLevelCategoryRows, firstLevelCategoryRowsLoading, firstLevelCategoryRowsLoaded,
+        topCategoryRows, topCategoryRowsLoading: topCategoryRowsLoading, topCategoryRowsLoaded: topCategoryRowsLoaded,
         categoryKeyExpanded, categoryId_questionId_done,
         categoryNodeOpening, categoryNodeOpened,
         activeQuestion
@@ -63,7 +63,7 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
     const categoryRow: ICategoryRow = {
         ...initialCategory,
         level: 1,
-        subCategories: firstLevelCategoryRows
+        subCategoryRows: topCategoryRows
     }
 
 
@@ -72,15 +72,15 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
     useEffect(() => {
         (async () => {
             // SET_FIRST_LEVEL_CATEGORY_ROWS  Level:1
-            if (!firstLevelCategoryRowsLoading && !firstLevelCategoryRowsLoaded) {
+            if (!topCategoryRowsLoading && !topCategoryRowsLoaded) {
                 await loadFirstLevelCategoryRows()
             }
         })()
-    }, [firstLevelCategoryRowsLoading, firstLevelCategoryRowsLoaded, loadFirstLevelCategoryRows]);
+    }, [topCategoryRowsLoading, topCategoryRowsLoaded, loadFirstLevelCategoryRows]);
 
     useEffect(() => {
         (async () => {
-            if (!categoryNodeOpening && firstLevelCategoryRows.length > 0) {
+            if (!categoryNodeOpening && topCategoryRows.length > 0) {
                 if (categoryId_questionId) {
                     if (categoryId_questionId === 'add_question') {
                         const sNewQuestion = localStorage.getItem('New_Question');
@@ -110,7 +110,7 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
                 }
             }
         })()
-    }, [categoryKeyExpanded, categoryNodeOpening, categoryNodeOpened, openCategoryNode, categoryId_questionId, categoryId_questionId_done, firstLevelCategoryRows])
+    }, [categoryKeyExpanded, categoryNodeOpening, categoryNodeOpened, openCategoryNode, categoryId_questionId, categoryId_questionId_done, topCategoryRowsLoaded])
 
     useEffect(() => {
         setLastRouteVisited(`/categories`);
@@ -125,7 +125,7 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
 
     console.log('===>>> Categories !!!!!!!!!!!!!!!!!')
     //if (!categoryNodeOpened)
-    if (firstLevelCategoryRows.length === 0)
+    if (topCategoryRows.length === 0)
         return null
 
     return (

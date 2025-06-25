@@ -22,13 +22,10 @@ const AddQuestion = ({ closeModal, showCloseButton, source, setError, odakle }: 
         ? activeQuestion.rootId
         : '';
 
-    // const { state, createQuestion, openCategoryNode } = useCategoryContext();
     if (!closeModal) {
-        // const cat = state.firstLevelCategoryRows.find(c => c.id === questionRow.parentCategory)
+        // const cat = state.topCategoryRows.find(c => c.id === questionRow.parentCategory)
         // questionRow.categoryTitle = cat ? cat.title : '';
     }
-
-    //const [formValues] = useState(activeQuestion);
 
     const submitForm = async (questionObject: IQuestion) => {
         const newQuestion: IQuestion = {

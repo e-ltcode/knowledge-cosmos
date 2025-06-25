@@ -23,7 +23,6 @@ export interface IWhoWhenDto {
 export interface IRecordDto {
 	Created?: IWhoWhenDto;
 	Modified?: IWhoWhenDto;
-	Archived?: IWhoWhenDto;
 }
 
 export class Dto2WhoWhen {

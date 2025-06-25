@@ -15,7 +15,8 @@ import {
   ICategoryRowDto,
   ILoadCategoryQuestions,
   QuestionKey,
-  FormMode
+  FormMode,
+  CategoryRowDto
 } from 'categories/types';
 
 import { initialCategoriesState, CategoryReducer, initialQuestion } from 'categories/CategoryReducer';
@@ -114,20 +115,14 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
         await Execute("GET", url)
           .then((dtos: ICategoryRowDto[]) => {
             console.timeEnd();
-            const firstLevelCategoryRows = dtos!.map((dto: ICategoryRowDto) => {
+            const topCategoryRows = dtos!.map((dto: ICategoryRowDto) => {
               dto.IsExpanded = categoryKeyExpanded
                 ? dto.Id === categoryKeyExpanded.id
                 : false;
               return new CategoryRow(dto).categoryRow;
             })
-            // if (id === null) {
-            dispatch({ type: ActionTypes.SET_FIRST_LEVEL_CATEGORY_ROWS, payload: { firstLevelCategoryRows } });
-            //}
-            // else {
-            //   dispatch({ type: ActionTypes.SET_SUB_CATEGORIES, payload: { id, subCategoryRows } });
-            // }
-            //setTimeout(() => setNodesReloaded(), 5000); // TODO actually when last node has been loaded
-            resolve(firstLevelCategoryRows);
+            dispatch({ type: ActionTypes.SET_TOP_CATEGORY_ROWS, payload: { topCategoryRows } });
+            resolve(topCategoryRows);
           });
       }
       catch (error: any) {
@@ -138,7 +133,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
   }, [dispatch]);
 
 
-    const openCategoryNode = useCallback(
+  const openCategoryNode = useCallback(
     async (catKeyExp: ICategoryKeyExpanded, fromChatBotDlg: string = 'false'): Promise<any> => {
       return new Promise(async (resolve) => {
         try {
@@ -268,7 +263,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
             questionFormMode = canEdit ? FormMode.EditingQuestion : FormMode.ViewingQuestion
           }
           dispatch({ type: ActionTypes.SET_CATEGORY_ROW_EXPANDED, payload: { categoryRow, formMode: questionFormMode } });
-          return categoryRow; //categoryKey;
+          return categoryRow;
         }
       }
       catch (error: any) {
@@ -405,12 +400,12 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
     }, [dispatch]);
 
 
-  const deleteCategory = useCallback(async (category: ICategory) => {
+  const deleteCategory = useCallback(async (categoryRow: ICategoryRow) => {
     //dispatch({ type: ActionTypes.SET_CATEGORY_LOADING, payload: { id, loading: false } });
     try {
-      const { partitionKey, id, parentCategory, rootId } = category;
+      const { partitionKey, id, parentCategory, rootId } = categoryRow;
       const parentCategoryKey: ICategoryKey = { partitionKey: parentCategory, id: parentCategory };
-      const categoryDto = new CategoryDto(category).categoryDto;
+      const categoryDto = new CategoryRowDto(categoryRow).categoryRowDto;
       const url = protectedResources.KnowledgeAPI.endpointCategory;
       console.time()
       await Execute("DELETE", url, categoryDto)    //Modified: {  Time: new Date(), NickName: globalState.authUser.nickName }
@@ -419,14 +414,14 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
           if (response instanceof Response) {
             console.error({ response });
             if (response.status == 404) {
-              dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error('Category Not Found'), whichRowId: category.id } });
+              dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error('Category Not Found'), whichRowId: id } });
             }
           }
           else {
             const { categoryDto, msg } = response as ICategoryDtoEx;
             if (msg === "OK") {
               // await loadAndCacheAllCategoryRows(); // reload
-              console.log('Category successfully deleted', { category })
+              console.log('Category successfully deleted', { categoryRow })
               await loadAndCacheAllCategoryRows()
                 .then(async (done: boolean) => {
                   await expandCategory(rootId!, parentCategoryKey, null).then(() => {
@@ -540,13 +535,14 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
         const cat: ICategoryRow | undefined = await getCat(id!);
         const newQuestion: IQuestionRow = {
           ...initialQuestion,
+          rootId,
           id: 'generateId', // backEnd will generate id
           title: 'new Question',
           partitionKey: id ?? '',
           parentCategory: id
         }
-        const catRow: ICategoryRow | null = await expandCategory(rootId, categoryKey, null, newQuestion, FormMode.AddingQuestion);
-        if (catRow) {
+        const categoryRow: ICategoryRow | null = await expandCategory(rootId, categoryKey, null, newQuestion, FormMode.AddingQuestion);
+        if (categoryRow) {
           const question: IQuestion = {
             ...newQuestion,
             categoryTitle: cat ? cat.title : 'Jok Parent Title',

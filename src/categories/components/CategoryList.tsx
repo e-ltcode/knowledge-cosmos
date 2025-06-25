@@ -9,10 +9,10 @@ const CategoryList = ({ title, categoryRow, level, isExpanded }: IParentInfo) =>
     const { state } = useCategoryContext();
     const { categoryKeyExpanded } = state;
 
-    const { partitionKey, id, questionId } = categoryKeyExpanded 
-                ? categoryKeyExpanded
-                : { partitionKey: null, id: null, questionId: null };
-    const { subCategories } = categoryRow;
+    const { partitionKey, id, questionId } = categoryKeyExpanded
+        ? categoryKeyExpanded
+        : { partitionKey: null, id: null, questionId: null };
+    const { subCategoryRows: subCategories } = categoryRow;
     //console.log('<<<<<<<<<CategoryList', categoryRow.id, subCategories )
 
     return (

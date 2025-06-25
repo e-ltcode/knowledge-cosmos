@@ -19,7 +19,7 @@ import AddCategory from './AddCategory';
 
 const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, questionId: string | null }) => {
 
-    const { partitionKey, id, title, level, hasSubCategories, subCategories,
+    const { partitionKey, id, title, level, hasSubCategories, subCategoryRows: subCategories,
         numOfQuestions, questionRows, isExpanded, rootId } = categoryRow;
 
     const categoryKey: ICategoryKey = { partitionKey, id }
@@ -238,7 +238,7 @@ const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, q
                         {Row1}
                     </div>
                 }
-                
+
             </ListGroup.Item>
 
             {state.error && state.whichRowId === id && <div className="text-danger">{state.error.message}</div>}

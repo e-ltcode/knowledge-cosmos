@@ -19,8 +19,6 @@ export enum FormMode {
 	ViewingVariation = 'ViewingVariation'
 }
 
-
-
 export interface IFromUserAssignedAnswer {
 	id: string,
 	createdBy: string
@@ -136,7 +134,7 @@ export interface ICategoryRowDto extends IRecordDto {
 	PartitionKey: string;
 	Id: string;
 	Kind: number;
-	RootId: string | null;
+	RootId?: string;
 	ParentCategory: string | null;
 	Title: string;
 	Link: string | null;
@@ -144,11 +142,15 @@ export interface ICategoryRowDto extends IRecordDto {
 	Variations: string[];
 	Level: number;
 	HasSubCategories: boolean;
-	SubCategories: ICategoryRowDto[];
+	SubCategoryRowDtos: ICategoryRowDto[];
 	NumOfQuestions: number;
 	QuestionRowDtos?: IQuestionRowDto[];
 	HasMoreQuestions?: boolean;
 	IsExpanded?: boolean;
+}
+
+export interface ICategoryDto extends ICategoryRowDto {
+	Doc1: string;
 }
 
 export interface ICategoryRow extends IRecord {
@@ -162,7 +164,7 @@ export interface ICategoryRow extends IRecord {
 	header: string;
 	level: number;
 	hasSubCategories: boolean;
-	subCategories: ICategoryRow[];
+	subCategoryRows: ICategoryRow[];
 	variations: string[];
 	numOfQuestions: number;
 	questionRows: IQuestionRow[];
@@ -171,13 +173,41 @@ export interface ICategoryRow extends IRecord {
 	titlesUpTheTree?: string;
 }
 export interface ICategory extends ICategoryRow {
+	doc1: string, // some document optionally, used in Category, but not not in CategoryRow
+}
 
+// ICategory rather than ICategoryRow
+export const IsCategory = (obj: any): boolean => typeof obj === 'object' && obj !== null &&
+	obj.hasOwnProperty('doc1') && typeof obj.doc1 === 'string';
+
+
+export class CategoryRowDto {
+	constructor(categoryRow: ICategoryRow) {
+		const { partitionKey, id, modified } = categoryRow;
+		this.categoryRowDto = {
+			PartitionKey: partitionKey,
+			Id: id,
+			ParentCategory: '',
+			Title: '',
+			Link: '',
+			Header: '',
+			Variations: [],
+			// TODO proveri []
+			HasSubCategories: false,
+			SubCategoryRowDtos: [],
+			NumOfQuestions: 0,
+			QuestionRowDtos: [],
+			Level: 0,
+			Kind: 0
+		}
+	}
+	categoryRowDto: ICategoryRowDto;
 }
 
 export class CategoryRow {
 	constructor(categoryRowDto: ICategoryRowDto) {
 		const { PartitionKey, Id, RootId, ParentCategory, Kind, Title, Link, Header, Variations, Level,
-			HasSubCategories, SubCategories,
+			HasSubCategories, SubCategoryRowDtos: SubCategories,
 			NumOfQuestions, QuestionRowDtos,
 			IsExpanded } = categoryRowDto;
 		this.categoryRow = {
@@ -190,7 +220,7 @@ export class CategoryRow {
 			titlesUpTheTree: '', // traverse up the tree, until root
 			variations: Variations,
 			hasSubCategories: HasSubCategories!,
-			subCategories: SubCategories.map(dto => new CategoryRow(dto).categoryRow),
+			subCategoryRows: SubCategories.map(dto => new CategoryRow(dto).categoryRow),
 			numOfQuestions: NumOfQuestions,
 			questionRows: QuestionRowDtos
 				? QuestionRowDtos.map(dto => new QuestionRow({ ...dto, RootId: RootId ?? undefined }).questionRow)
@@ -198,7 +228,7 @@ export class CategoryRow {
 			level: Level,
 			kind: Kind,
 			isExpanded: IsExpanded,
-			rootId: RootId
+			rootId: RootId ?? null
 		}
 	}
 	categoryRow: ICategoryRow;
@@ -257,33 +287,13 @@ export class CategoryKey {
 
 
 
-
-export interface ICategoryDto extends IRecordDto {
-	PartitionKey: string;
-	Id: string;
-	Kind: number;
-	RootId?: string;
-	ParentCategory: string | null;
-	Title: string;
-	Link: string | null;
-	Header: string;
-	Variations: string[];
-	Level: number;
-	HasSubCategories?: boolean;
-	SubCategories?: ICategoryDto[];
-	NumOfQuestions?: number;
-	QuestionRowDtos?: IQuestionRowDto[];
-	HasMoreQuestions?: boolean;
-	IsExpanded?: boolean;
-}
-
 export class Category {
 	constructor(dto: ICategoryDto) {
 		const { PartitionKey, Id, Kind, RootId, ParentCategory, Title, Link, Header, Level, Variations, NumOfQuestions,
-			HasSubCategories, SubCategories, Created, Modified, QuestionRowDtos, IsExpanded } = dto;
+			HasSubCategories, SubCategoryRowDtos, Created, Modified, QuestionRowDtos, IsExpanded, Doc1 } = dto;
 
-		const subCategories = SubCategories
-			? SubCategories.map((dto: ICategoryDto) => new Category(dto).category)
+		const subCategoryRows = SubCategoryRowDtos
+			? SubCategoryRowDtos.map((rowDto: ICategoryRowDto) => new CategoryRow(rowDto).categoryRow)
 			: [];
 
 		const questionRows = QuestionRowDtos
@@ -302,14 +312,15 @@ export class Category {
 			level: Level!,
 			variations: Variations ?? [],
 			hasSubCategories: HasSubCategories!,
-			subCategories,
+			subCategoryRows,
 			created: new Dto2WhoWhen(Created!).whoWhen,
 			modified: Modified
 				? new Dto2WhoWhen(Modified).whoWhen
 				: undefined,
 			numOfQuestions: NumOfQuestions!,
 			questionRows,
-			isExpanded: IsExpanded === true
+			isExpanded: IsExpanded === true,
+			doc1: Doc1
 		}
 	}
 	category: ICategory;
@@ -317,7 +328,7 @@ export class Category {
 
 export class CategoryDto {
 	constructor(category: ICategory) {
-		const { partitionKey, id, kind, parentCategory, title, link, header, level, variations, created, modified } = category;
+		const { partitionKey, id, kind, parentCategory, title, link, header, level, variations, created, modified, doc1 } = category;
 		this.categoryDto = {
 			PartitionKey: partitionKey,
 			Id: id,
@@ -327,9 +338,14 @@ export class CategoryDto {
 			Link: link,
 			Header: header ?? '',
 			Level: level,
+			HasSubCategories: true,
+			SubCategoryRowDtos: [],
+			NumOfQuestions: 0,
+			QuestionRowDtos: [],
 			Variations: variations,
 			Created: new WhoWhen2Dto(created).whoWhenDto!,
-			Modified: new WhoWhen2Dto(modified).whoWhenDto!
+			Modified: new WhoWhen2Dto(modified).whoWhenDto!,
+			Doc1: doc1
 		}
 	}
 	categoryDto: ICategoryDto;
@@ -479,9 +495,9 @@ export interface IParentInfo {
 
 export interface ICategoriesState {
 	formMode: FormMode;
-	firstLevelCategoryRows: ICategoryRow[];
-	firstLevelCategoryRowsLoading: boolean;
-	firstLevelCategoryRowsLoaded: boolean;
+	topCategoryRows: ICategoryRow[];
+	topCategoryRowsLoading: boolean;
+	topCategoryRowsLoaded: boolean;
 	categoryKeyExpanded: ICategoryKeyExpanded | null;
 	categoryId_questionId_done?: string;
 	categoryNodeOpening: boolean;
@@ -512,7 +528,7 @@ export interface ICategoriesContext {
 	viewCategory: (categoryRow: ICategoryRow, includeQuestionId: string) => void,
 	editCategory: (categoryRow: ICategoryRow, includeQuestionId: string) => void,
 	updateCategory: (category: ICategory, closeForm: boolean) => void,
-	deleteCategory: (category: ICategory) => void,
+	deleteCategory: (categoryRow: ICategoryRow) => void,
 	deleteCategoryVariation: (categoryKey: ICategoryKey, name: string) => void,
 	expandCategory: (rootId: string, categoryKey: ICategoryKey, includeQuestionId: string | null,
 		newQuestion?: IQuestionRow, questionFormMode?: FormMode) => Promise<any>,
@@ -606,11 +622,12 @@ export class AssignedAnswer {
 
 
 export enum ActionTypes {
+	SET_TOP_CATEGORY_ROWS = 'SET_TOP_CATEGORY_ROWS',
+	SET_CATEGORY_NODE_OPENED = "SET_CATEGORY_NODE_OPENED",
 	SET_LOADING = 'SET_LOADING',
-	SET_FIRST_LEVEL_CATEGORY_ROWS_LOADING = 'SET_FIRST_LEVEL_CATEGORY_ROWS_LOADING',
+	SET_TOP_CATEGORY_ROWS_LOADING = 'SET_TOP_CATEGORY_ROWS_LOADING',
 	SET_CATEGORY_LOADING = 'SET_CATEGORY_LOADING',
 	SET_CATEGORY_QUESTIONS_LOADING = 'SET_CATEGORY_QUESTIONS_LOADING',
-	SET_FIRST_LEVEL_CATEGORY_ROWS = 'SET_FIRST_LEVEL_CATEGORY_ROWS',
 	SET_SUB_CATEGORIES = 'SET_SUB_CATEGORIES',
 	SET_ERROR = 'SET_ERROR',
 	ADD_SUB_CATEGORY = 'ADD_SUB_CATEGORY',
@@ -629,7 +646,6 @@ export enum ActionTypes {
 	CANCEL_CATEGORY_FORM = 'CANCEL_CATEGORY_FORM',
 
 	CATEGORY_NODE_OPENING = "CATEGORY_NODE_OPENING",
-	SET_CATEGORY_NODE_OPENED = "SET_CATEGORY_NODE_OPENED",
 	FORCE_OPEN_CATEGORY_NODE = "FORCE_OPEN_CATEGORY_NODE",
 
 	// questions
@@ -651,7 +667,7 @@ export enum ActionTypes {
 //export const actionsThatModifyFirstLevelCategoryRow = [
 export const actionsThatModifyTreeView = [
 	// ActionTypes.SET_FIRST_LEVEL_CATEGORY_ROWS keep commented
-	// ActionTypes.SET_CATEGORY_NODE_OPENED
+	// ActionTypes.SET_CATEGORY_NODE_OPENED,
 	ActionTypes.DELETE_CATEGORY,
 	ActionTypes.SET_CATEGORY_ROW_EXPANDED,
 	ActionTypes.SET_CATEGORY_ROW_COLLAPSED,
@@ -680,7 +696,7 @@ export const actionTypesToLocalStore = [
 export type CategoriesPayload = {
 
 
-	[ActionTypes.SET_FIRST_LEVEL_CATEGORY_ROWS_LOADING]: {
+	[ActionTypes.SET_TOP_CATEGORY_ROWS_LOADING]: {
 		categoryRow?: ICategoryRow;
 	}
 
@@ -713,9 +729,9 @@ export type CategoriesPayload = {
 	};
 
 
-	[ActionTypes.SET_FIRST_LEVEL_CATEGORY_ROWS]: {
+	[ActionTypes.SET_TOP_CATEGORY_ROWS]: {
 		categoryRow?: ICategoryRow;
-		firstLevelCategoryRows: ICategoryRow[];
+		topCategoryRows: ICategoryRow[];
 	};
 
 	[ActionTypes.SET_SUB_CATEGORIES]: {

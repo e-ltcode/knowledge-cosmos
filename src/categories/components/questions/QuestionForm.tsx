@@ -145,6 +145,7 @@ const QuestionForm = ({ question, submitForm, children, showCloseButton, source 
           <Form.Control
             as="textarea"
             name="title"
+            title={formik.values.title === "new Question" ? "new Question" :  "question text"}
             ref={nameRef}
             onChange={formik.handleChange}
             // onBlur={formik.handleBlur}
@@ -152,7 +153,7 @@ const QuestionForm = ({ question, submitForm, children, showCloseButton, source 
             //   if (isEdit && formik.initialValues.title !== formik.values.title)
             //     formik.submitForm();
             // }}
-            value={formik.values.title}
+            value={formik.values.title === "new Question" ? "" : formik.values.title}
             rows={3}
             placeholder='New Question'
             className="text-primary w-100"
