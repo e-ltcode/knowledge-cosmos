@@ -417,6 +417,7 @@ const innerReducer = (state: ICategoriesState, action: CategoriesActions): ICate
     case ActionTypes.SET_CATEGORY_UPDATED: { // modifies TreeView
       const { categoryRow } = action.payload; // ICategory extends ICategoryRow
       console.assert(IsCategory(categoryRow))
+      // TODO what about instanceof?
       const category: ICategory = categoryRow as ICategory;
       const activeCategory: ICategory = { ...category, isExpanded: false }
       const { partitionKey, id, parentCategory, rootId } = category;

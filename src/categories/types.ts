@@ -183,11 +183,11 @@ export const IsCategory = (obj: any): boolean => typeof obj === 'object' && obj 
 
 export class CategoryRowDto {
 	constructor(categoryRow: ICategoryRow) {
-		const { partitionKey, id, modified } = categoryRow;
+		const { partitionKey, id, parentCategory, modified } = categoryRow;
 		this.categoryRowDto = {
 			PartitionKey: partitionKey,
 			Id: id,
-			ParentCategory: '',
+			ParentCategory: parentCategory,
 			Title: '',
 			Link: '',
 			Header: '',
@@ -198,8 +198,9 @@ export class CategoryRowDto {
 			NumOfQuestions: 0,
 			QuestionRowDtos: [],
 			Level: 0,
-			Kind: 0
-		}
+			Kind: 0,
+			Modified: modified ? new WhoWhen2Dto(modified).whoWhenDto! : undefined
+			}
 	}
 	categoryRowDto: ICategoryRowDto;
 }

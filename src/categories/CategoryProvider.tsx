@@ -310,7 +310,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
     async (categoryRow: ICategoryRow) => {
       try {
         const { rootId, partitionKey, id, level } = categoryRow;
-        const categoryKey: ICategoryKey = {partitionKey, id};
+        const categoryKey: ICategoryKey = { partitionKey, id };
         const newCategoryRow: ICategoryRow = {
           ...initialCategory,
           rootId,
@@ -331,7 +331,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
         const catRow: ICategoryRow | null = await expandCategory(expandInfo);
         if (catRow) {
           const category: ICategory = {
-             ...newCategoryRow,
+            ...newCategoryRow,
             doc1: ''
           }
           dispatch({ type: ActionTypes.SET_CATEGORY, payload: { categoryRow: category } });
@@ -410,9 +410,13 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
 
 
   const viewCategory = useCallback(async (categoryRow: ICategoryRow, includeQuestionId: string | null) => {
-    if (formMode === FormMode.AddingQuestion) {
+        if (formMode === FormMode.AddingQuestion) {
       await cancelAddQuestion();
     }
+    else if (formMode === FormMode.AddingCategory) {
+      await cancelAddCategory();
+    }
+
     dispatch({ type: ActionTypes.SET_LOADING, payload: { categoryRow } });
     const categoryKey = new CategoryKey(categoryRow).categoryKey!;
     const category: ICategory = await getCategory(categoryKey, includeQuestionId);
@@ -428,6 +432,9 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
   const editCategory = useCallback(async (categoryRow: ICategoryRow, includeQuestionId: string | null) => {
     if (formMode === FormMode.AddingQuestion) {
       await cancelAddQuestion();
+    }
+    else if (formMode === FormMode.AddingCategory) {
+      await cancelAddCategory();
     }
     dispatch({ type: ActionTypes.SET_LOADING, payload: {} });
     const categoryKey = new CategoryKey(categoryRow).categoryKey!;
@@ -509,7 +516,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
                     rootId: rootId!,
                     categoryKey: parentCategoryKey,
                     includeQuestionId: null,
-                    formMode: FormMode.AddingCategory
+                    formMode: FormMode.None
                   }
                   await expandCategory(expandInfo).then(() => {
                     // dispatch({ type: ActionTypes.DELETE_CATEGORY, payload: { id: categoryDto!.Id } });
@@ -572,9 +579,7 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
       try {
         const url = `${protectedResources.KnowledgeAPI.endpointQuestion}/${partitionKey}/${id}/${startCursor}/${PAGE_SIZE}/${includeQuestionId}`;
         console.time()
-        console.log('>>>>>>>>>>>>')
         console.log('>>>>>>>>>>>>loadCategoryQuestions URL:', { url }, { includeQuestionId })
-        console.log('>>>>>>>>>>>>')
         await Execute!("GET", url).then((categoryDtoEx: ICategoryDtoEx) => {
           console.timeEnd();
           const { categoryDto, msg } = categoryDtoEx;
@@ -663,7 +668,6 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
       try {
         const { rootId, partitionKey, parentCategory } = activeQuestion!;
         const categoryKey: ICategoryKey = { partitionKey, id: parentCategory };
-
         const expandInfo: IExpandInfo = {
           rootId,
           categoryKey,
@@ -711,9 +715,9 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
                       rootId,
                       categoryKey: parentCategoryKey,
                       includeQuestionId: null,
-                      formMode: FormMode.AddingQuestion,
-                      newCategoryRow: undefined,
-                      newQuestion: question, // TODO proveri
+                      formMode: FormMode.EditingQuestion,
+                      // newCategoryRow: undefined,
+                      // newQuestion: question, // TODO proveri
                     }
                     await expandCategory(expandInfo).then(() => {
                       dispatch({ type: ActionTypes.SET_QUESTION, payload: { formMode: FormMode.EditingQuestion, question } });
@@ -795,36 +799,30 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
         const url = `${protectedResources.KnowledgeAPI.endpointQuestion}`;
         console.time()
         await Execute("DELETE", url, questionDto)
-          .then(async (response: IQuestionDtoEx | Response) => {
+          .then(async (questionDtoEx: IQuestionDtoEx) => {
+            const { questionDto, msg } = questionDtoEx;
             console.timeEnd();
-            if (response instanceof Response) {
-              console.error(response);
-              dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error('Server Error'), whichRowId: id } });
+            if (questionDto) {
+              const question = new Question(questionDto).question;
+              console.log('Question successfully deleted')
+              dispatch({ type: ActionTypes.DELETE_QUESTION, payload: { question } });
+              /*
+              //dispatch({ type: ActionTypes.CLOSE_QUESTION_FORM })
+              await loadAndCacheAllCategoryRows(); // reload
+              */
+              const parentCategoryKey: ICategoryKey = { partitionKey: parentCategory, id: parentCategory };
+              const expandInfo: IExpandInfo = {
+                rootId,
+                categoryKey: parentCategoryKey,
+                includeQuestionId: null,
+              }
+              await expandCategory(expandInfo).then(() => {
+                // dispatch({ type: ActionTypes.SET_CATEGORY, payload: { categoryRow: category } }); // ICategory extends ICategory Row
+              })
             }
             else {
-              const questionDtoEx: IQuestionDtoEx = response;
-              const { questionDto, msg } = questionDtoEx;
-              if (questionDto) {
-                const question = new Question(questionDto).question;
-                console.log('Question successfully deleted')
-                dispatch({ type: ActionTypes.DELETE_QUESTION, payload: { question } });
-                /*
-                //dispatch({ type: ActionTypes.CLOSE_QUESTION_FORM })
-                await loadAndCacheAllCategoryRows(); // reload
-                */
-                const parentCategoryKey: ICategoryKey = { partitionKey: parentCategory, id: parentCategory };
-                const expandInfo: IExpandInfo = {
-                  rootId,
-                  categoryKey: parentCategoryKey,
-                  includeQuestionId: null,
-                }
-                await expandCategory(expandInfo).then(() => {
-                  // dispatch({ type: ActionTypes.SET_CATEGORY, payload: { categoryRow: category } }); // ICategory extends ICategory Row
-                });
-              }
-              else {
-                dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error(msg) } });
-              }
+              console.error(questionDtoEx);
+              dispatch({ type: ActionTypes.SET_ERROR, payload: { error: new Error('Server Error'), whichRowId: id } });
             }
           });
       }
@@ -876,6 +874,12 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
   const viewQuestion = useCallback(async (questionRow: IQuestionRow) => {
     const questionKey = new QuestionKey(questionRow).questionKey;
     const questionEx: IQuestionEx = await getQuestion(questionKey!);
+    if (formMode === FormMode.AddingQuestion) {
+      await cancelAddQuestion();
+    }
+    else if (formMode === FormMode.AddingCategory) {
+      await cancelAddCategory();
+    }
     const { question, msg } = questionEx;
     if (question) {
       question.rootId = questionRow.rootId;
@@ -889,6 +893,12 @@ export const CategoryProvider: React.FC<Props> = ({ children }) => {
   const editQuestion = useCallback(async (questionRow: IQuestionRow) => {
     const { partitionKey, id, parentCategory, rootId } = questionRow;
     const questionKey: IQuestionKey = { partitionKey, id };
+    if (formMode === FormMode.AddingQuestion) {
+      await cancelAddQuestion();
+    }
+    else if (formMode === FormMode.AddingCategory) {
+      await cancelAddCategory();
+    }
     //dispatch({ type: ActionTypes.SET_VIEWING_EDITING_QUESTION });
     const questionEx: IQuestionEx = await getQuestion(questionKey!);
     const { question, msg } = questionEx;
