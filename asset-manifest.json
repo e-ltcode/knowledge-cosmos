@@ -1,17 +1,17 @@
 {
   "files": {
     "main.css": "/knowledge-cosmos/static/css/main.f16d4728.css",
-    "main.js": "/knowledge-cosmos/static/js/main.c6c58870.js",
+    "main.js": "/knowledge-cosmos/static/js/main.2f1616f0.js",
     "static/media/QuestionForm.png": "/knowledge-cosmos/static/media/QuestionForm.5286a182127dd64e7904.png",
     "static/media/Q.png": "/knowledge-cosmos/static/media/Q.4209512a2ea1935c338f.png",
     "static/media/QPlus.png": "/knowledge-cosmos/static/media/QPlus.a9d1719c7a50e21d3475.png",
     "static/media/A.png": "/knowledge-cosmos/static/media/A.69d84f9a4d04ea1e54d4.png",
     "index.html": "/knowledge-cosmos/index.html",
     "main.f16d4728.css.map": "/knowledge-cosmos/static/css/main.f16d4728.css.map",
-    "main.c6c58870.js.map": "/knowledge-cosmos/static/js/main.c6c58870.js.map"
+    "main.2f1616f0.js.map": "/knowledge-cosmos/static/js/main.2f1616f0.js.map"
   },
   "entrypoints": [
     "static/css/main.f16d4728.css",
-    "static/js/main.c6c58870.js"
+    "static/js/main.2f1616f0.js"
   ]
 }
