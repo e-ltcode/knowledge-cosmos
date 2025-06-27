@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, JSX } from "react";
+import React, { useEffect, useRef, JSX, ChangeEvent, useCallback, useState } from "react";
 import * as Yup from "yup";
 import { useFormik } from "formik";
 import { Form, CloseButton, Row, Stack, Dropdown } from "react-bootstrap";
@@ -12,15 +12,16 @@ import { useGlobalContext } from "global/GlobalProvider";
 import VariationList from "categories/VariationList";
 import { Select } from "common/components/Select";
 import { kindOptions } from "common/kindOptions ";
+import { debounce } from "common/utilities";
 
-const CategoryForm = ({ inLine, formMode: mode, category, questionId, submitForm, children }: ICategoryFormProps) => {
+const CategoryForm = ({ inLine, formMode, category, questionId, submitForm, children }: ICategoryFormProps) => {
 
   const { globalState } = useGlobalContext();
   const { isDarkMode, variant, bg } = globalState;
 
-  const viewing = mode === FormMode.ViewingCategory;
-  const editing = mode === FormMode.EditingCategory;
-  const adding = mode === FormMode.AddingCategory;
+  const viewing = formMode === FormMode.ViewingCategory;
+  const editing = formMode === FormMode.EditingCategory;
+  const adding = formMode === FormMode.AddingCategory;
 
   const { partitionKey, id, title, variations, questionRows, kind } = category;
   const categoryKey: ICategoryKey = { partitionKey, id };
@@ -68,6 +69,18 @@ const CategoryForm = ({ inLine, formMode: mode, category, questionId, submitForm
       //props.handleClose(false);
     }
   });
+
+  
+  const debouncedTitleHandler = useCallback(
+    debounce((id: string, value: string) => {
+      dispatch({ type: ActionTypes.CATEGORY_TITLE_CHANGED, payload: { id, value } })
+    }, 500), []);
+
+  const handleChangeTitle = (event: ChangeEvent<HTMLTextAreaElement>) => {
+    formik.handleChange(event);
+    const value = event.target.value;
+    debouncedTitleHandler(id, value)
+  };
 
   // eslint-disable-next-line no-self-compare
   // const nameRef = useRef<HTMLAreaElement | null>(null);
@@ -125,10 +138,16 @@ const CategoryForm = ({ inLine, formMode: mode, category, questionId, submitForm
           <Form.Label>Title</Form.Label>
           <Form.Control
             as="textarea"
-            placeholder="New Category"
             name="title"
+            placeholder={formik.values.title === "new Category" ? "new Category" : "category text"}
             ref={nameRef}
-            onChange={formik.handleChange}
+            onChange={handleChangeTitle}
+            // onChange={(e: any, value: any): {e: ChangeEvent<HTMLTextAreaElement>, value: string} => {
+            //         formik.handleChange(e, value);
+            //         console.log(value)
+            //       }}
+
+
             //onBlur={formik.handleBlur}
             // onBlur={(e: React.FocusEvent<HTMLTextAreaElement>): void => {
             //   if (isEdit && formik.initialValues.title !== formik.values.title)
@@ -136,7 +155,7 @@ const CategoryForm = ({ inLine, formMode: mode, category, questionId, submitForm
             // }}
             rows={3}
             className="text-primary w-100"
-            value={formik.values.title}
+            value={formik.values.title === "new Category" ? "" : formik.values.title}
             disabled={viewing}
           />
           <Form.Text className="text-danger">
@@ -209,7 +228,7 @@ const CategoryForm = ({ inLine, formMode: mode, category, questionId, submitForm
           />
         }
 
-        {(editing || adding) &&
+        {((formik.dirty && editing) || adding) &&
           <FormButtons
             cancelForm={cancelForm}
             handleSubmit={formik.handleSubmit}

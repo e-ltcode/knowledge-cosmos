@@ -220,7 +220,7 @@ export class CategoryRow {
 			titlesUpTheTree: '', // traverse up the tree, until root
 			variations: Variations,
 			hasSubCategories: HasSubCategories!,
-			subCategoryRows: SubCategories.map(dto => new CategoryRow(dto).categoryRow),
+			subCategoryRows: SubCategories.map(dto => new CategoryRow({...dto, RootId}).categoryRow),
 			numOfQuestions: NumOfQuestions,
 			questionRows: QuestionRowDtos
 				? QuestionRowDtos.map(dto => new QuestionRow({ ...dto, RootId: RootId ?? undefined }).questionRow)
@@ -478,6 +478,15 @@ export interface ICategoryInfo {
 	level: number
 }
 
+export interface IExpandInfo {
+	rootId: string;
+	categoryKey: ICategoryKey;
+	includeQuestionId: string | null;
+	formMode?: FormMode;
+	newCategoryRow?: ICategoryRow;
+	newQuestion?: IQuestionRow;
+}
+
 export interface IParentInfo {
 	//execute?: (method: string, endpoint: string) => Promise<any>,
 	// partitionKey: string | null,
@@ -524,19 +533,21 @@ export interface ICategoriesContext {
 	state: ICategoriesState,
 	openCategoryNode: (categoryKeyExpanded: ICategoryKeyExpanded, fromChatBotDlg?: string) => Promise<any>;
 	loadFirstLevelCategoryRows: () => Promise<any>,
+	addSubCategory: (categoryRow: ICategoryRow) => Promise<any>;
+	cancelAddCategory: () => Promise<any>;
 	createCategory: (category: ICategory) => void,
 	viewCategory: (categoryRow: ICategoryRow, includeQuestionId: string) => void,
 	editCategory: (categoryRow: ICategoryRow, includeQuestionId: string) => void,
 	updateCategory: (category: ICategory, closeForm: boolean) => void,
 	deleteCategory: (categoryRow: ICategoryRow) => void,
 	deleteCategoryVariation: (categoryKey: ICategoryKey, name: string) => void,
-	expandCategory: (rootId: string, categoryKey: ICategoryKey, includeQuestionId: string | null,
-		newQuestion?: IQuestionRow, questionFormMode?: FormMode) => Promise<any>,
+	expandCategory: (expandInfo: IExpandInfo) => Promise<any>,
 	collapseCategory: (categoryRow: ICategoryRow) => void,
 	//////////////
 	// questions
 	loadCategoryQuestions: (catParams: ILoadCategoryQuestions) => void;  //(parentInfo: IParentInfo) => void,
-	addQuestion: (categoryKey: ICategoryKey, rootId: string, unshiftQuestion?: IQuestionRow) => Promise<any>;
+	addQuestion: (categoryKey: ICategoryKey, rootId: string) => Promise<any>;
+	cancelAddQuestion: () => Promise<any>;
 	createQuestion: (question: IQuestion, fromModal: boolean) => Promise<any>;
 	viewQuestion: (questionRow: IQuestionRow) => void;
 	editQuestion: (questionRow: IQuestionRow) => void;
@@ -631,6 +642,8 @@ export enum ActionTypes {
 	SET_SUB_CATEGORIES = 'SET_SUB_CATEGORIES',
 	SET_ERROR = 'SET_ERROR',
 	ADD_SUB_CATEGORY = 'ADD_SUB_CATEGORY',
+	CATEGORY_TITLE_CHANGED = 'CATEGORY_TITLE_CHANGED',
+	CANCEL_ADD_SUB_CATEGORY = 'CANCEL_ADD_SUB_CATEGORY',
 	SET_CATEGORY = 'SET_CATEGORY',
 	SET_CATEGORY_ROW = 'SET_CATEGORY_ROW',
 	SET_CATEGORY_ROW_EXPANDED = 'SET_CATEGORY_ROW_EXPANDED',
@@ -651,6 +664,9 @@ export enum ActionTypes {
 	// questions
 	LOAD_CATEGORY_QUESTIONS = 'LOAD_CATEGORY_QUESTIONS',
 	ADD_QUESTION = 'ADD_QUESTION',
+	QUESTION_TITLE_CHANGED = 'QUESTION_TITLE_CHANGED',
+
+	CANCEL_ADD_QUESTION = 'CANCEL_ADD_QUESTION',
 	SET_QUESTION_TO_VIEW = 'SET_QUESTION_TO_VIEW',
 	SET_QUESTION_TO_EDIT = 'SET_QUESTION_TO_EDIT',
 
@@ -664,6 +680,7 @@ export enum ActionTypes {
 	CANCEL_QUESTION_FORM = 'CANCEL_QUESTION_FORM'
 }
 
+/*
 //export const actionsThatModifyFirstLevelCategoryRow = [
 export const actionsThatModifyTreeView = [
 	// ActionTypes.SET_FIRST_LEVEL_CATEGORY_ROWS keep commented
@@ -680,8 +697,9 @@ export const actionsThatModifyTreeView = [
 	ActionTypes.CANCEL_CATEGORY_FORM,
 	ActionTypes.ADD_QUESTION
 ]
+	*/
 
-export const actionTypesToLocalStore = [
+export const actionTypesStoringToLocalStorage = [
 	// ActionTypes.SET_CATEGORY_NODE_OPENED
 	ActionTypes.SET_CATEGORY_ROW_EXPANDED,
 	ActionTypes.SET_CATEGORY_ROW_COLLAPSED,
@@ -746,6 +764,26 @@ export type CategoriesPayload = {
 		categoryKey: ICategoryKey,
 		level: number
 	}
+
+	[ActionTypes.CATEGORY_TITLE_CHANGED]: {
+		categoryRow?: ICategoryRow;
+		id: string;
+		value: string;
+	}
+
+	[ActionTypes.QUESTION_TITLE_CHANGED]: {
+		categoryRow?: ICategoryRow;
+		categoryId: string;
+		id: string;
+		value: string;
+	}
+
+
+
+	[ActionTypes.CANCEL_ADD_SUB_CATEGORY]: {
+		categoryRow?: ICategoryRow;
+	}
+
 
 	[ActionTypes.SET_CATEGORY]: {
 		categoryRow: ICategory;
@@ -821,6 +859,11 @@ export type CategoriesPayload = {
 		categoryRow?: ICategoryRow;
 		categoryInfo: ICategoryInfo;
 	}
+
+	[ActionTypes.CANCEL_ADD_QUESTION]: {
+		categoryRow?: ICategoryRow;
+	}
+
 
 	[ActionTypes.SET_QUESTION_TO_VIEW]: {
 		categoryRow?: ICategoryRow;

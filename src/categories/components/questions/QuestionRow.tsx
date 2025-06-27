@@ -28,7 +28,6 @@ const QuestionRow = ({ questionRow }: { questionRow: IQuestionRow }) => {
 
     const { canEdit, isDarkMode, variant, bg, authUser } = useGlobalState();
     const { state, viewQuestion, addQuestion, editQuestion, deleteQuestion } = useCategoryContext();
-    const dispatch = useCategoryDispatch();
 
     const { activeQuestion, formMode, categoryKeyExpanded } = state;
     
@@ -145,7 +144,6 @@ const QuestionRow = ({ questionRow }: { questionRow: IQuestionRow }) => {
                 <>
                     <div id='div-question' className="ms-0 d-md-none w-100">
                         <AddQuestion
-                            odakle='questionRow'
                             showCloseButton={true}
                             source={0} />
                     </div>
@@ -171,8 +169,7 @@ const QuestionRow = ({ questionRow }: { questionRow: IQuestionRow }) => {
                 <>
                     {/* <div class="d-lg-none">hide on lg and wider screens</div> */}
                     <div id='div-question' className="ms-0 d-md-none w-100">
-                        {formMode === FormMode.ViewingQuestion &&
-                            <ViewQuestion inLine={true} />}
+                        <ViewQuestion inLine={true} />
                     </div>
                     <div className="d-none d-md-block">
                         {Row1}

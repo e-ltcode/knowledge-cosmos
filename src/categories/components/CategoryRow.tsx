@@ -6,7 +6,7 @@ import QPlus from 'assets/QPlus.png';
 import { ListGroup, Button, Badge } from "react-bootstrap";
 
 import { useGlobalState } from 'global/GlobalProvider'
-import { ActionTypes, ICategoryInfo, ICategoryKey, ICategoryKeyExpanded, ICategoryRow, FormMode } from "categories/types";
+import { ActionTypes, ICategoryInfo, ICategoryKey, ICategoryKeyExpanded, ICategoryRow, FormMode, IExpandInfo } from "categories/types";
 import { useCategoryContext, useCategoryDispatch } from 'categories/CategoryProvider'
 import { useHover } from 'hooks/useHover';
 import { ICategory } from 'categories/types'
@@ -29,12 +29,11 @@ const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, q
 
     const { canEdit, isDarkMode, variant, bg, authUser } = useGlobalState();
 
-    const { state, viewCategory, editCategory, deleteCategory, expandCategory, collapseCategory, addQuestion } = useCategoryContext();
+    const { state, addSubCategory, viewCategory, editCategory, deleteCategory, expandCategory, collapseCategory, addQuestion } = useCategoryContext();
     const { formMode, categoryKeyExpanded, activeCategory } = state;
-    const isSelected = activeCategory !== null && activeCategory.id === id;
+    const isSelected = activeCategory !== null && (activeCategory.id === id);
     const showForm = isSelected;
 
-    const dispatch = useCategoryDispatch();
 
     const alreadyAdding = formMode === FormMode.AddingCategory;
     // TODO proveri ovo
@@ -52,8 +51,15 @@ const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, q
     const handleExpandClick = async () => {
         if (isExpanded)
             await collapseCategory(categoryRow);
-        else
-            await expandCategory(rootId!, categoryKey, questionId ?? null);
+        else {
+            const expandInfo: IExpandInfo = {
+                rootId: rootId!,
+                categoryKey,
+                includeQuestionId: null,
+                formMode: canEdit ? FormMode.EditingCategory : FormMode.ViewingCategory
+            }
+            await expandCategory(expandInfo);
+        }
     }
 
 
@@ -70,22 +76,44 @@ const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, q
     //             await viewCategory(categoryRow, questionId ?? 'null');
     //     }, [])
 
-    const onSelectCategory =
-        async (): Promise<any> => {
-            if (canEdit)
-                await editCategory(categoryRow, questionId ?? 'null');
-            else
-                await viewCategory(categoryRow, questionId ?? 'null');
-        }
+    const onSelectCategory = async (): Promise<any> => {
+        if (canEdit)
+            await editCategory(categoryRow, questionId ?? 'null');
+        else
+            await viewCategory(categoryRow, questionId ?? 'null');
+    }
 
     useEffect(() => {
         if (numOfQuestions > 0 && !isExpanded) { //!isExpanded && !isSelected) {
             if (categoryKeyExpanded && categoryKeyExpanded.id === id) { // catKeyExpanded.id) {
                 console.log('%%%%%%%%%%%%%%%%%%%%%%%% Zovem iz CategoryRow', categoryKeyExpanded.id, id)
-                expandCategory(rootId!, categoryKey, questionId);
+                const expandInfo: IExpandInfo = {
+                    rootId: rootId!,
+                    categoryKey,
+                    includeQuestionId: questionId,
+                    formMode: canEdit ? FormMode.EditingCategory : FormMode.ViewingCategory
+                }
+                expandCategory(expandInfo);
             }
         }
     }, [id, isExpanded, isSelected, expandCategory, categoryKeyExpanded]) // 
+
+    useEffect(() => {
+        (async () => {
+            if (isSelected) {
+                switch (formMode) {
+                    case FormMode.ViewingCategory:
+                        await viewCategory(categoryRow, questionId ?? 'null');
+                        break;
+                    case FormMode.EditingQuestion:
+                        canEdit
+                            ? await editCategory(categoryRow, questionId ?? 'null')
+                            : await viewCategory(categoryRow, questionId ?? 'null');
+                        break;
+                }
+            }
+        })()
+    }, [isSelected]);
 
     const [hoverRef, hoverProps] = useHover();
 
@@ -143,14 +171,17 @@ const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, q
                         className="py-0 mx-1 text-primary float-end"
                         title="Add SubCategory"
                         onClick={() => {
-                            dispatch({
-                                type: ActionTypes.ADD_SUB_CATEGORY,
-                                payload: {
-                                    rootId,
-                                    categoryKey,
-                                    level: categoryRow.level + 1
-                                }
-                            })
+                            categoryRow.level += 1;
+                            addSubCategory(categoryRow)
+                            //</>const categoryInfo: ICategoryInfo = { categoryKey: { partitionKey, id: parentCategory }, level: 0 }
+                            // dispatch({
+                            //     type: ActionTypes.ADD_SUB_CATEGORY,
+                            //     payload: {
+                            //         rootId,
+                            //         categoryKey,
+                            //         level: categoryRow.level + 1
+                            //     }
+                            // })
                             // if (!isExpanded)
                             //     dispatch({ type: ActionTypes.SET_EXPANDED, payload: { categoryKey } });
                         }}
@@ -200,8 +231,7 @@ const CategoryRow = ({ categoryRow, questionId }: { categoryRow: ICategoryRow, q
             >
                 {/*inAdding &&*/showForm && formMode === FormMode.AddingCategory &&
                     <>
-                        <div>
-                            {/* <AddCategory rootId={rootId} categoryKey={categoryKey} inLine={true} /> */}
+                        <div className="ms-0 d-md-none w-100">
                             <AddCategory />
                         </div>
                         <div className="d-none d-md-block">

@@ -18,16 +18,25 @@ const AboutShort: React.FC<IAboutShort> = (props: IAboutShort) => {
           <div className="card-body">
             <h5 className="card-title">Questions &amp; Answers</h5>
             <h6 className="card-subtitle mb-2 text-muted">Build your knowledge base, for sharing information.</h6>
-            <p className="card-text">When you record your experiences and insights,other members of your team can share info.</p>
+            <p className="card-text">When you record your experiences and insights, other members of your team can share info.</p>
+            <p className="card-subtitle mb-2 text-muted">We use MS Azure Platform and Cosmos DB for NoSQL</p>
           </div>
         </div>
 
         <div className="card card-block col-5 m-3">
           <div className="card-body">
             <h5 className="card-title">Microsoft Azure Cloud Platform</h5>
-            <h6 className="card-subtitle mb-2 text-muted">We use MS Azure Platform and Cosmos DB for NoSQL</h6>
             <p className="card-text">
-              Cosmos DB uses Vector Search which is suitable for AI agents.
+              CosmosDB uses Vector Search which is suitable for AI agents.
+              Using CosmosDB embeddings we should get a much better query search. <br/>
+              For example, someone can enter one of the following filters, in the question auto-complete:
+              <ol>
+               <li>"dead remote controller"</li>
+               <li>"remote unit does not work"</li> 
+               <li>"controller doesn't work as expected"</li>
+              </ol>
+              App will return a similar set of answers for each filter. 
+              Users can ask questions in a much more natural language form.
             </p>
 
           </div>

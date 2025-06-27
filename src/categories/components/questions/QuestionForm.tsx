@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ChangeEvent, useCallback } from 'react';
 import { useEffect, useRef } from "react";
 import * as Yup from "yup";
 import { useFormik } from "formik";
@@ -18,6 +18,7 @@ import AssignedAnswers from './AssignedAnswers';
 import { useGlobalContext } from 'global/GlobalProvider';
 import VariationList from 'categories/VariationList';
 import RelatedFilters from './RelatedFilters';
+import { debounce } from 'common/utilities';
 
 const QuestionForm = ({ question, submitForm, children, showCloseButton, source = 0, closeModal }: IQuestionFormProps) => {
 
@@ -81,6 +82,17 @@ const QuestionForm = ({ question, submitForm, children, showCloseButton, source 
     }
   });
 
+   const debouncedTitleHandler = useCallback(
+      debounce((categoryId: string, id: string, value: string) => {
+        dispatch({ type: ActionTypes.QUESTION_TITLE_CHANGED, payload: { categoryId, id, value } })
+      }, 500), []);
+  
+    const handleChangeTitle = (event: ChangeEvent<HTMLTextAreaElement>) => {
+      formik.handleChange(event);
+      const value = event.target.value;
+      debouncedTitleHandler(formik.values.parentCategory!, id, value)
+    };
+  
 
   const setParentCategory = (cat: ICategoryRow) => {
     formik.setFieldValue('parentCategory', cat.id);
@@ -145,9 +157,9 @@ const QuestionForm = ({ question, submitForm, children, showCloseButton, source 
           <Form.Control
             as="textarea"
             name="title"
-            title={formik.values.title === "new Question" ? "new Question" :  "question text"}
+            placeholder={formik.values.title === "new Question" ? "new Question" :  "question text"}
             ref={nameRef}
-            onChange={formik.handleChange}
+            onChange={handleChangeTitle}
             // onBlur={formik.handleBlur}
             // onBlur={(e: React.FocusEvent<HTMLTextAreaElement>): void => {
             //   if (isEdit && formik.initialValues.title !== formik.values.title)
@@ -155,7 +167,6 @@ const QuestionForm = ({ question, submitForm, children, showCloseButton, source 
             // }}
             value={formik.values.title === "new Question" ? "" : formik.values.title}
             rows={3}
-            placeholder='New Question'
             className="text-primary w-100"
             disabled={isDisabled}
           />
@@ -236,7 +247,7 @@ const QuestionForm = ({ question, submitForm, children, showCloseButton, source 
             />
           </>
         }
-        {formik.dirty && (editing || adding) &&
+        { ((formik.dirty && editing) || adding) && 
           <FormButtons
             cancelForm={cancelForm}
             handleSubmit={formik.handleSubmit}

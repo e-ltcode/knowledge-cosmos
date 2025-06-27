@@ -1,5 +1,5 @@
 import { Reducer } from 'react'
-import { ActionTypes, ICategoriesState, ICategory, IQuestion, CategoriesActions, ILocStorage, ICategoryKey, ICategoryKeyExtended, IQuestionRow, Question, IQuestionRowDto, IQuestionKey, CategoryKey, QuestionKey, ICategoryDto, QuestionRow, ICategoryRow, CategoryRow, actionsThatModifyTreeView, actionTypesToLocalStore as actionTypesStoringToLocalStore, ICategoryRowDto, FormMode, IsCategory } from "categories/types";
+import { ActionTypes, ICategoriesState, ICategory, IQuestion, CategoriesActions, ILocStorage, ICategoryKey, ICategoryKeyExtended, IQuestionRow, Question, IQuestionRowDto, IQuestionKey, CategoryKey, QuestionKey, ICategoryDto, QuestionRow, ICategoryRow, CategoryRow, actionTypesStoringToLocalStorage, ICategoryRowDto, FormMode, IsCategory } from "categories/types";
 
 export const initialQuestion: IQuestion = {
   partitionKey: '',
@@ -183,7 +183,7 @@ export const CategoryReducer: Reducer<ICategoriesState, CategoriesActions> = (st
   //   newState.topCategoryRows = newTopCategoryRows;
   // }
 
-  if (actionTypesStoringToLocalStore.includes(action.type)) {
+  if (actionTypesStoringToLocalStorage.includes(action.type)) {
     const { categoryKeyExpanded } = newState;
     const locStorage: ILocStorage = {
       lastCategoryKeyExpanded: categoryKeyExpanded
@@ -237,17 +237,16 @@ const innerReducer = (state: ICategoriesState, action: CategoriesActions): ICate
     case ActionTypes.SET_CATEGORY_NODE_OPENED: {
       const { categoryRow, questionId, fromChatBotDlg } = action.payload; // categoryKeyExpanded, 
       const { id } = categoryRow; //categoryKeyExpanded;
-      const { topCategoryRows } = state;
       console.log('====== >>>>>>> CategoriesReducer ActionTypes.SET_CATEGORY_NODE_OPENED payload ', action.payload)
-      const firstLevelRows: ICategoryRow[] = fromChatBotDlg
+      const topCategoryRows: ICategoryRow[] = fromChatBotDlg
         ? []
-        : topCategoryRows.map(c => c.id === categoryRow.id
+        : state.topCategoryRows.map(c => c.id === categoryRow.id
           ? { ...categoryRow }
           : { ...c }
         )
       return {
         ...state,
-        topCategoryRows: firstLevelRows,
+        topCategoryRows,
         categoryId_questionId_done: `${id}_${questionId}`,
         categoryNodeOpening: false,
         categoryNodeOpened: true,
@@ -347,24 +346,23 @@ const innerReducer = (state: ICategoriesState, action: CategoriesActions): ICate
 
     case ActionTypes.SET_CATEGORY: {
       const { categoryRow } = action.payload; // category doesn't contain  inAdding 
-      const activeCategory = categoryRow; //{ ...categoryRow, isExpanded: false }
+      console.assert(IsCategory(categoryRow));
       const { partitionKey, id, parentCategory, rootId } = categoryRow;
-      const categoryKey = { partitionKey, id }
+      // const categoryKey = { partitionKey, id }
       return {
         ...state,
         // keep mode
         loading: false,
         //categoryKeyExpanded: { ...categoryKey, questionId: null },
-        activeCategory,
+        activeCategory: categoryRow,
         activeQuestion: null
       }
     }
 
     case ActionTypes.SET_CATEGORY_ROW_EXPANDED: {
-
       const { categoryRow, formMode } = action.payload; // category doesn't contain  inAdding 
       const { partitionKey, id } = categoryRow;
-      
+
       const categoryKey = { partitionKey, id };
       const { categoryKeyExpanded } = state;
       const { questionId } = categoryKeyExpanded!;
@@ -375,7 +373,7 @@ const innerReducer = (state: ICategoriesState, action: CategoriesActions): ICate
         ...state,
         // keep mode
         loading: false,
-        categoryKeyExpanded: { ...categoryKey, questionId },
+        categoryKeyExpanded: { ...categoryKey, questionId: null }, // questionId
         activeCategory: null,
         activeQuestion: null,
         formMode
@@ -414,6 +412,7 @@ const innerReducer = (state: ICategoriesState, action: CategoriesActions): ICate
       };
     }
 
+    case ActionTypes.SET_CATEGORY_ADDED:
     case ActionTypes.SET_CATEGORY_TO_EDIT:   // doesn't modify TreeView
     case ActionTypes.SET_CATEGORY_UPDATED: { // modifies TreeView
       const { categoryRow } = action.payload; // ICategory extends ICategoryRow
@@ -528,6 +527,47 @@ const innerReducer = (state: ICategoriesState, action: CategoriesActions): ICate
     }
     */
 
+    case ActionTypes.CATEGORY_TITLE_CHANGED: {
+      const { value, id } = action.payload;
+      const { topCategoryRows } = state;
+      const categoryRow: ICategoryRow|undefined = findCategory(topCategoryRows, id);
+      if (categoryRow) {
+        categoryRow.title = value;
+      }
+      return {
+        ...state,
+      };
+    }
+
+    case ActionTypes.QUESTION_TITLE_CHANGED: {
+      const { categoryId, id, value } = action.payload;
+      const { topCategoryRows } = state;
+      const categoryRow: ICategoryRow|undefined = findCategory(topCategoryRows, categoryId);
+      if (categoryRow) {
+        categoryRow.questionRows.find(q => q.id === id)!.title = value;
+      }
+      return {
+        ...state,
+      };
+    }
+
+    case ActionTypes.CANCEL_ADD_SUB_CATEGORY: {
+      return {
+        ...state,
+        activeCategory: null,
+        activeQuestion: null,
+        formMode: FormMode.None
+      };
+    }
+
+    case ActionTypes.CANCEL_ADD_QUESTION: {
+      return {
+        ...state,
+        formMode: FormMode.None,
+        activeQuestion: null
+      };
+    }
+
     case ActionTypes.SET_QUESTION: {
       const { question, formMode } = action.payload;
       console.log(ActionTypes.SET_QUESTION, question)
@@ -622,37 +662,10 @@ const innerReducer = (state: ICategoriesState, action: CategoriesActions): ICate
     case ActionTypes.CANCEL_QUESTION_FORM:
     case ActionTypes.CLOSE_QUESTION_FORM: {
       const { question } = action.payload;
-      const { partitionKey, id, parentCategory } = question;
-      let activeQuestion: IQuestion | null = null
-      const category = state.topCategoryRows.find(c => c.id === parentCategory)
-      let questionRows: IQuestionRow[] = [];
-      // POPRAVI
-      switch (state.formMode) {
-        case FormMode.AddingQuestion: {
-          //console.assert(category!.inAdding, "expected category.inAdding");
-          //questionRows = category!.questionRows.filter(q => !q.inAdding)
-          // TODO activeQuestion: ?;
-          break;
-        }
-
-        case FormMode.ViewingQuestion:
-        case FormMode.EditingQuestion: {
-          activeQuestion = null;
-          break;
-        }
-
-        default:
-          break;
-      }
-
       return {
         ...state,
-        // topCategoryRows: newTopCategoryRows.map((c: ICategory) => c.id === parentCategory
-        //   ? { ...c, /*questionRows: questionRows, numOfQuestions: questionRows.length,*/ inAdding: false }
-        //   : c
-        // ),
         formMode: FormMode.None,
-        activeQuestion
+        activeQuestion: null
       };
     }
 
@@ -662,7 +675,7 @@ const innerReducer = (state: ICategoriesState, action: CategoriesActions): ICate
 };
 
 
-function findCategory(categoryRows: ICategoryRow[], id: string | null): ICategoryRow | undefined {
+function findCategory(categoryRows: ICategoryRow[], id: string): ICategoryRow | undefined {
   let cat: ICategoryRow | undefined = categoryRows.find(c => c.id === (id ?? 'null'));
   if (!cat) {
     try {

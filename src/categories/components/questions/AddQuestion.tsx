@@ -11,12 +11,11 @@ interface IProps {
     showCloseButton?: boolean;
     source?: number;
     setError?: (msg: string) => void;
-    odakle: string;
 }
 
-const AddQuestion = ({ closeModal, showCloseButton, source, setError, odakle }: IProps) => {
+const AddQuestion = ({ closeModal, showCloseButton, source, setError }: IProps) => {
 
-    const { state, createQuestion } = useCategoryContext();
+    const { state, cancelAddQuestion, createQuestion } = useCategoryContext();
     const { activeQuestion } = state;
     const rootId = activeQuestion
         ? activeQuestion.rootId
@@ -27,6 +26,11 @@ const AddQuestion = ({ closeModal, showCloseButton, source, setError, odakle }: 
         // questionRow.categoryTitle = cat ? cat.title : '';
     }
 
+    const cancelAdd = async () => {
+        await cancelAddQuestion();
+    }
+    
+    
     const submitForm = async (questionObject: IQuestion) => {
         const newQuestion: IQuestion = {
             ...questionObject,
@@ -59,7 +63,7 @@ const AddQuestion = ({ closeModal, showCloseButton, source, setError, odakle }: 
             question={activeQuestion!}
             showCloseButton={showCloseButton ?? true}
             source={source ?? 0}
-            closeModal={closeModal}
+            closeModal={cancelAdd}
             //formMode={FormMode.AddingQuestion}
             submitForm={submitForm}
         >
@@ -69,4 +73,5 @@ const AddQuestion = ({ closeModal, showCloseButton, source, setError, odakle }: 
 }
 
 export default AddQuestion
+
 

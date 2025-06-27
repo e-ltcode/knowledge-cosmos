@@ -56,7 +56,6 @@ const ModalAddQuestion = (props: IProps) => {
             </Modal.Header>
             <Modal.Body className="py-0">
                 <AddQuestion
-                    odakle='Modal'
                     closeModal={props.onHide}
                     showCloseButton={false}
                     source={1} /*gmail*/
