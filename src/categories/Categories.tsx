@@ -38,7 +38,7 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
         formMode
     } = state;
 
-    const { setLastRouteVisited, searchQuestions } = useGlobalContext();
+    const { setLastRouteVisited, searchQuestions, sendSearchFeedback } = useGlobalContext();
     const { isDarkMode, authUser, categoryRows } = useGlobalState();
 
     const [modalShow, setModalShow] = useState(false);
@@ -144,6 +144,7 @@ const Providered = ({ categoryId_questionId, fromChatBotDlg }: IProps) => {
                                     onSelectQuestion={onSelectQuestion}
                                     allCats={categoryRows}
                                     searchQuestions={searchQuestions}
+                                    sendSearchFeedback={sendSearchFeedback}
                                 />
                             </div>
                         </div>
