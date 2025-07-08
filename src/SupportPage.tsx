@@ -31,7 +31,7 @@ const SupportPage: React.FC = () => {
 	// if (!isAuthenticated)
 	//     return <div>loading...</div>;
 
-	const { searchQuestions } = useGlobalContext();
+	const { searchQuestions, sendSearchFeedback } = useGlobalContext();
 	const { canEdit, authUser, isDarkMode, variant, bg, categoryRows: cats, categoryRowsLoaded: catsLoaded } = useGlobalState();
 
 	const onSelectQuestion = async (questionKey: IQuestionKey) => {
@@ -63,6 +63,7 @@ const SupportPage: React.FC = () => {
 								onSelectQuestion={onSelectQuestion}
 								allCats={cats}
 								searchQuestions={searchQuestions}
+								sendSearchFeedback={sendSearchFeedback}
 							/>
 						</div>
 						<Button

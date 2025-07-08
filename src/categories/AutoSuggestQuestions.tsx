@@ -44,7 +44,8 @@ export class AutoSuggestQuestions extends React.Component<{
 	tekst: string | undefined,
 	onSelectQuestion: (questionKey: IQuestionKey, underFilter: string) => void,
 	allCats: Map<string, ICategoryRow>,
-	searchQuestions: (filter: string, count: number) => Promise<IQuestionRow[]>
+	searchQuestions: (filter: string, count: number) => Promise<IQuestionRow[]>,
+	sendSearchFeedback?: (query: string, questionId: string, position: number, clicked: boolean) => Promise<void>
 }, any> {
 	// region Fields
 	state: any;
@@ -335,8 +336,24 @@ export class AutoSuggestQuestions extends React.Component<{
 
 	protected onSuggestionSelected(event: React.FormEvent<any>, data: Autosuggest.SuggestionSelectedEventData<IQuestionRow>): void {
 		const question: IQuestionRow = data.suggestion;
-		// alert(`Selected question is ${question.questionId} (${question.text}).`);
-		this.props.onSelectQuestion({ partitionKey: question.parentCategory, id: question.id }, this.state.value);
+		const query = this.state.value;
+		
+		// Send search feedback for analytics
+		if (this.props.sendSearchFeedback) {
+			// Calculate position by finding the question in current suggestions
+			let position = 0;
+			for (const section of this.state.suggestions) {
+				for (const q of section.questionRows) {
+					if (q.id === question.id) {
+						this.props.sendSearchFeedback(query, question.id, position, true);
+						break;
+					}
+					position++;
+				}
+			}
+		}
+		
+		this.props.onSelectQuestion({ partitionKey: question.parentCategory, id: question.id }, query);
 	}
 
 	/*

@@ -85,7 +85,9 @@ export interface IQuestionRow extends IRecord {
 	parentCategory: string | null;
 	categoryTitle?: string;
 	isSelected?: boolean;
-	rootId: string
+	rootId: string;
+	similarity?: number;
+	searchRank?: number;
 }
 
 export interface IQuestion extends IQuestionRow {
